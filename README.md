@@ -9,12 +9,26 @@ This repository contains code and assets for an introductory course on raytracin
 Contents
 ========
 
-* [Level X: the final render](#level-x-the-final-render)
+* [Level 0: Baby Steps](#level-0-baby-steps)
+* [Level 1: Heaven and Earth](#level-1-heaven-and-earth)
+* ...
+* [Level X: The Final Render](#level-x-the-final-render)
 
 
 
+Level 0: Baby Steps
+-------------------
 
-Level X: the final render
+Creating a 512x512 PPM image.
+
+
+Level 1: Heaven and Earth
+-------------------------
+
+Positioning a virtual camera; casting rays; simple and complex render modes for ground and sky color.
+
+
+Level X: The Final Render
 -------------------------
 
 ![Final render animation](img/final-optimized.gif)
