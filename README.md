@@ -11,6 +11,7 @@ Contents
 
 * [Level 0: Baby Steps](#level-0-baby-steps)
 * [Level 1: Heaven and Earth](#level-1-heaven-and-earth)
+* [Level 2: Newfags can't Triforce](#level-2-newfags-cant-triforce)
 * ...
 * [Level X: The Final Render](#level-x-the-final-render)
 
@@ -26,6 +27,12 @@ Level 1: Heaven and Earth
 -------------------------
 
 Positioning a virtual camera; casting rays; simple and complex render modes for ground and sky color.
+
+
+Level 2: Newfags can't Triforce
+-------------------------------
+
+Rendering simple monochromatic triangles.
 
 
 Level X: The Final Render
