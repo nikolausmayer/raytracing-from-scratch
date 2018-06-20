@@ -10,9 +10,11 @@ SRC = main.cpp
 
 default: raytracer
 
+CPPFLAGS = -W -Wall -Wextra -Wpedantic
+
 raytracer: Makefile $(SRC)
 	$(info Building raytracer...)
-	$(CXX) -O3 -std=c++11 -o raytracer main.cpp 
+	$(CXX) ${CPPFLAGS} -O3 -std=c++11 -o raytracer main.cpp 
 
 debug: Makefile $(SRC)
 	$(info Building raytracer... (debug mode))
