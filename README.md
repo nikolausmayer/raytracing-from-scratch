@@ -22,6 +22,7 @@ Level 0: Baby Steps
 -------------------
 
 Creating a 512x512 PPM image.
+
 ![Level 0](img/level-0.png)
 
 
@@ -29,7 +30,9 @@ Level 1: Heaven and Earth
 -------------------------
 
 Positioning a virtual camera; casting rays; simple and complex render modes for ground and sky color.
+
 ![Level 1a](img/level-1a.png)
+
 ![Level 1b](img/level-1b.png)
 
 
@@ -44,6 +47,7 @@ Level 3: Mirror, Mirror
 -------------------------------
 
 Making rays bounce off triangles: the essence of raytracing.
+
 ![Level 3](img/level-3.png)
 
 
