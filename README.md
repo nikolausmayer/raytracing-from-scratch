@@ -40,6 +40,7 @@ Level 2: Newfags can't Triforce
 -------------------------------
 
 Rendering simple monochromatic triangles.
+
 ![Level 2](img/level-2.png)
 
 
