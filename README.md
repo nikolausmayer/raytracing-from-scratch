@@ -13,7 +13,11 @@ Contents
 * [Level 1: Heaven and Earth](#level-1-heaven-and-earth)
 * [Level 2: Newfags can't Triforce](#level-2-newfags-cant-triforce)
 * [Level 3: Mirror, Mirror](#level-3-mirror-mirror)
-* ...
+* [Level 4: Ray Energy](#level-4-ray-energy)
+* [Level 5: The Sphere](#level-5-the-sphere)
+* [Level 6: Let there be Light](#level-6-let-there-be-light)
+* [Level 7: lol I'm so random](#level-7-lol-im-so-random)
+* [Level 8: Textures](#level-8-textures)
 * [Level X: The Final Render](#level-x-the-final-render)
 
 
@@ -74,6 +78,25 @@ Level 6: Let there be Light
 Tracing a light source; shadows and highlights.
 
 ![Level 6](img/level-6.png)
+
+
+Level 7: lol I'm so random
+--------------------------
+
+Using random numbers for anti-aliasing, matte surfaces, soft shadows, and depth-of-field.
+
+![Level 7a](img/level-7a.png)
+![Level 7b](img/level-7b.png)
+![Level 7c](img/level-7c.png)
+![Level 7d](img/level-7d.png)
+
+
+Level 8: Textures
+-----------------
+
+Rendering textured surfaces
+
+![Level 8](img/level-8.png)
 
 
 Level X: The Final Render
