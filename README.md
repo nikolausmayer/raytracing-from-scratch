@@ -45,11 +45,35 @@ Rendering simple monochromatic triangles.
 
 
 Level 3: Mirror, Mirror
--------------------------------
+-----------------------
 
 Making rays bounce off triangles: the essence of raytracing.
 
 ![Level 3](img/level-3.png)
+
+
+Level 4: Ray Energy
+-------------------
+
+Accumulating color over multiple ray bounces from surfaces with less-than-perfect reflectivity.
+
+![Level 4](img/level-4.png)
+
+
+Level 5: The Sphere
+-------------------
+
+Rendering perfect spheres (not made of polygons).
+
+![Level 5](img/level-5.png)
+
+
+Level 6: Let there be Light
+---------------------------
+
+Tracing a light source; shadows and highlights.
+
+![Level 6](img/level-6.png)
 
 
 Level X: The Final Render
