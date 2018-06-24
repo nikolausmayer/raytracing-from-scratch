@@ -224,7 +224,7 @@ int main(){
           Vector color{0,0,0};
 
           Vector ray_origin{0,1,-4};
-          Vector ray_direction{right*(x-0.5) + down*(y-0.5) + ahead};
+          Vector ray_direction = !Vector{right*(x-0.5) + down*(y-0.5) + ahead};
 
           float distance_to_hit;
 

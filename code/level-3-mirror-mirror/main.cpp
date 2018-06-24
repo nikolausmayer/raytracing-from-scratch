@@ -212,13 +212,13 @@ int main(){
 
     std::vector<Object*> scene_objects;
 
-    scene_objects.push_back(new Triangle({-2,0,0},
-                                         {2,0,0},
-                                         {0,3,0}));
+    scene_objects.push_back(new Triangle({-2,0,-1},
+                                         {2,0,-1},
+                                         {0,3,-1.1}));
     scene_objects.back()->set_color({0,0,255});
     scene_objects.push_back(new Triangle({-2,0,-5},
                                          {2,0,-5},
-                                         {0,3,-4.97}));
+                                         {0,3,-5}));
     scene_objects.back()->set_color({0,255,0});
 
 
@@ -235,7 +235,7 @@ int main(){
         Vector color{0,0,0};
 
         Vector ray_origin{0,1,-4};
-        Vector ray_direction{right*(x-0.5) + down*(y-0.5) + ahead};
+        Vector ray_direction = !Vector{right*(x-0.5) + down*(y-0.5) + ahead};
 
         Vector ray_hit_at, 
                ray_bounced_direction, 
