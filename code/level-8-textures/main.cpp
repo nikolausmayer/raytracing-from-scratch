@@ -4,13 +4,10 @@
 
 #include <cmath>
 #include <cstdlib>
-#include <cstdio>
 #include <fstream>
-#include <functional>
 #include <iomanip>
 #include <iostream>
 #include <limits>
-#include <sstream>
 #include <vector>
 
 //
@@ -20,6 +17,7 @@ float uniform_random_01()
   /// RAND_MAX in <cstdlib>
   return static_cast<float>(rand())/RAND_MAX - 0.5f;
 }
+
 
 /// Define a vector class with constructor and operator
 struct Vector
@@ -78,10 +76,16 @@ struct Vector
                   x*r.y-y*r.x);
   }
 
+  /// Vector length
+  float length() const
+  {
+    return std::sqrt(*this % *this);
+  }
+
   /// Normalization to unit length
   Vector operator!() const
   {
-    return (*this)*(1./sqrt(*this % *this));
+    return (*this)*(1./length());
   }
 };
 
@@ -91,8 +95,10 @@ struct Object
 {
   Object()
     : roughness(0),
+      diffuse_factor(1),
+      specular_factor(1),
       reflectivity(1),
-      color({255,255,255})
+      color(255,255,255)
   { }
 
   /// Check if object is hit by ray, and if yes, compute next ray
@@ -115,11 +121,23 @@ struct Object
                              Vector& outgoing_normal,
                              float& hit_distance,
                              Vector& hit_color,
+                             float& object_diffuse_factor,
+                             float& object_specular_factor,
                              float& object_reflectivity) const = 0;
 
   void set_roughness(float v)
   {
     roughness = v;
+  };
+
+  void set_diffuse_factor(float v)
+  {
+    diffuse_factor = v;
+  };
+
+  void set_specular_factor(float v)
+  {
+    specular_factor = v;
   };
 
   void set_reflectivity(float v)
@@ -133,6 +151,8 @@ struct Object
   };
 
   float roughness;
+  float diffuse_factor;
+  float specular_factor;
   float reflectivity;
   Vector color;
 };
@@ -162,7 +182,7 @@ struct Triangle : Object
     ///
     u = p1-p0;
     v = p2-p0;
-    normal = (u^v);
+    normal = (v^u);
   }
 
   Vector p0, p1, p2;
@@ -175,34 +195,54 @@ struct Triangle : Object
                      Vector& outgoing_normal,
                      float& hit_distance,
                      Vector& hit_color,
+                     float& object_diffuse_factor,
+                     float& object_specular_factor,
                      float& object_reflectivity) const
   {
-    hit_distance = (-normal%(incoming_ray_origin-p0)) / 
-                   (-incoming_ray_direction%-normal);
-    /// Without a little slack, a reflected ray sometimes hits the same
-    /// object again (machine precision..)
+    if (!normal%-!incoming_ray_direction < 0)
+      return false;
+
+    const float& pox{p0.x};
+    const float& poy{p0.y};
+    const float& poz{p0.z};
+    const float& ux{u.x};
+    const float& uy{u.y};
+    const float& uz{u.z};
+    const float& vx{v.x};
+    const float& vy{v.y};
+    const float& vz{v.z};
+    const float& rx{incoming_ray_direction.x};
+    const float& ry{incoming_ray_direction.y};
+    const float& rz{incoming_ray_direction.z};
+    const float& ox{incoming_ray_origin.x};
+    const float& oy{incoming_ray_origin.y};
+    const float& oz{incoming_ray_origin.z};
+    const float u_factor = (-(ox - pox)*(ry*vz - rz*vy) + (oy - poy)*(rx*vz - rz*vx) - (oz - poz)*(rx*vy - ry*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
+    const float v_factor = ((ox - pox)*(ry*uz - rz*uy) - (oy - poy)*(rx*uz - rz*ux) + (oz - poz)*(rx*uy - ry*ux))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
+    const float ray_factor = (-(ox - pox)*(uy*vz - uz*vy) + (oy - poy)*(ux*vz - uz*vx) - (oz - poz)*(ux*vy - uy*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
+
+    if (u_factor < 0 or
+        v_factor < 0 or
+        u_factor+v_factor > 1 or
+        ray_factor < 0)
+      return false;
+    hit_distance = (incoming_ray_direction*ray_factor).length();
     if (hit_distance <= 1e-6)
       return false;
 
-    float u_factor = (u^-incoming_ray_direction)%(incoming_ray_origin-p0) /
-                     (-incoming_ray_direction%-normal);
-    float v_factor = (-incoming_ray_direction^v)%(incoming_ray_origin-p0) /
-                     (-incoming_ray_direction%-normal);
-    if (u_factor < 0 or
-        v_factor < 0 or
-        u_factor+v_factor > 1)
-      return false;
-
-    /// Temporary normal vector
-    //const Vector n = normal;
-    const Vector n = !(normal+Vector(uniform_random_01(),
-                                     uniform_random_01(),
-                                     uniform_random_01())*roughness);
-
-    outgoing_ray_origin = p0+v*u_factor+u*v_factor;
-    outgoing_ray_direction = !(incoming_ray_direction - !n*(incoming_ray_direction%!n)*2);
-    outgoing_normal = n;
+    outgoing_ray_direction = !(incoming_ray_direction + !normal*(-incoming_ray_direction%!normal)*2);
+    outgoing_ray_direction = !(outgoing_ray_direction + !Vector(uniform_random_01(),
+                                                                uniform_random_01(),
+                                                                uniform_random_01())*roughness);
+    if (!normal%outgoing_ray_direction <= 0) {
+      outgoing_ray_direction = !(outgoing_ray_direction + (normal%-outgoing_ray_direction)*2);
+    }
+    
+    outgoing_ray_origin = p0+u*u_factor+v*v_factor;
+    outgoing_normal = !(outgoing_ray_direction-incoming_ray_direction);
     hit_color = color;
+    object_diffuse_factor = diffuse_factor;
+    object_specular_factor = specular_factor;
     object_reflectivity = reflectivity;
     return true;
   }
@@ -226,32 +266,39 @@ struct Sphere : Object
                      Vector& outgoing_normal,
                      float& hit_distance,
                      Vector& hit_color,
+                     float& object_diffuse_factor,
+                     float& object_specular_factor,
                      float& object_reflectivity) const
   {
-    const Vector p=incoming_ray_origin-center;
-    float b=p%incoming_ray_direction,
-          c=p%p-radius*radius,
-          q=b*b-c;
+    const Vector p = incoming_ray_origin-center;
+    const float b = p%incoming_ray_direction;
+    const float c = p%p-radius*radius;
 
     //Does the ray hit the sphere ?
-    if (q > 0) {
+    if (b*b-c > 0) {
       //It does, compute the distance camera-sphere
-      float s=-b-sqrt(q);
+      float s=-b-sqrt(radius*radius-p%p+b*b);
 
       if (s < 1e-3)
         return false;
 
       hit_distance=s;
       outgoing_ray_origin = incoming_ray_origin + incoming_ray_direction*hit_distance;
-      //const Vector normal = !(p+incoming_ray_direction*hit_distance);
-      const Vector normal = !(!(p+incoming_ray_direction*hit_distance) +
-                             Vector(uniform_random_01(),
-                                    uniform_random_01(),
-                                    uniform_random_01())*roughness);
-      outgoing_ray_direction = !(incoming_ray_direction - normal*(incoming_ray_direction%normal)*2);
-      outgoing_normal = normal;
+      const Vector normal = !(p+incoming_ray_direction*hit_distance);
+      
+      outgoing_ray_direction = !(incoming_ray_direction + !normal*(-incoming_ray_direction%!normal)*2);
+      outgoing_ray_direction = !(outgoing_ray_direction + !Vector(uniform_random_01(),
+                                                                  uniform_random_01(),
+                                                                  uniform_random_01())*roughness);
+      if (!normal%outgoing_ray_direction <= 0) {
+        outgoing_ray_direction = !(outgoing_ray_direction + !normal*(normal%-outgoing_ray_direction)*2);
+      }
+
+      outgoing_normal = !(outgoing_ray_direction-incoming_ray_direction);
 
       hit_color = color;
+      object_diffuse_factor = diffuse_factor;
+      object_specular_factor = specular_factor;
       object_reflectivity = reflectivity;
       
       return true;
@@ -291,18 +338,19 @@ Vector get_ground_color(const Vector& ray_origin,
 
 Vector get_sky_color(const Vector& ray_direction)
 {
-  return Vector(.7,.6,1)*255*pow(1-ray_direction.y,2);
+  return Vector{.7,.6,1}*255*std::pow(1-ray_direction.y,2);
 }
 
 
 int main(){
 
+  /// LEFT-HANDED COORDINATE SYSTEM!
   /// FORWARDS vector (viewing direction)
-  Vector ahead(0,0,1);
+  Vector ahead{0,0,1};
   /// RIGHT vector
-  Vector right(.002,0,0);
-  /// DOWN vector
-  Vector down(0,.002,0);
+  Vector right{.002,0,0};
+  /// UP vector
+  Vector up{0,.002,0};
 
   std::ofstream outfile("img.ppm");
 
@@ -310,41 +358,54 @@ int main(){
   std::vector<Object*> scene_objects;
 
   /// 2 spheres
-  scene_objects.push_back(new Sphere(Vector{1,2,0}, .5));
+  scene_objects.push_back(new Sphere{Vector{1,2,0}, .5});
   scene_objects.back()->set_roughness(0.75);
+  scene_objects.back()->set_diffuse_factor(0);
+  scene_objects.back()->set_specular_factor(0);
   scene_objects.back()->set_reflectivity(0.95);
-  scene_objects.back()->set_color({0,0,0});
-  scene_objects.push_back(new Sphere(Vector{-1.25,.8,0}, .25));
+  scene_objects.back()->set_color({255,255,255});
+  scene_objects.push_back(new Sphere{Vector{-1.25,.8,0}, .25});
+  scene_objects.back()->set_diffuse_factor(0.9);
+  scene_objects.back()->set_specular_factor(1);
   scene_objects.back()->set_reflectivity(0.05);
-  scene_objects.back()->set_color({255,0,0});
+  scene_objects.back()->set_color({255,165,0});
 
   /// Octahedron (8 triangles)
   /// Bottom half
-  scene_objects.push_back(new Triangle(Vector{0,0,0},
-                                       Vector{0,1,1},
-                                       Vector{-1,1,0}));
-  scene_objects.push_back(new Triangle(Vector{0,0,0},
-                                       Vector{-1,1,0},
-                                       Vector{0,1,-1}));
-  scene_objects.push_back(new Triangle(Vector{0,0,0},
-                                       Vector{0,1,-1},
-                                       Vector{1,1,0}));
-  scene_objects.push_back(new Triangle(Vector{0,0,0},
-                                       Vector{1,1,0},
-                                       Vector{0,1,1}));
+  scene_objects.push_back(new Triangle{Vector{ 0, 0, 0},
+                                       Vector{-1, 1, 0},
+                                       Vector{ 0, 1, 1}});
+  scene_objects.back()->set_diffuse_factor(0);
+  scene_objects.push_back(new Triangle{Vector{ 0, 0, 0},
+                                       Vector{ 0, 1,-1},
+                                       Vector{-1, 1, 0}});
+  scene_objects.back()->set_diffuse_factor(0);
+  scene_objects.push_back(new Triangle{Vector{ 0, 0, 0},
+                                       Vector{ 1, 1, 0},
+                                       Vector{ 0, 1,-1}});
+  scene_objects.back()->set_diffuse_factor(0);
+  scene_objects.push_back(new Triangle{Vector{ 0, 0, 0},
+                                       Vector{ 0, 1, 1},
+                                       Vector{ 1, 1, 0}});
+  scene_objects.back()->set_diffuse_factor(0);
   /// Top half
-  scene_objects.push_back(new Triangle(Vector{0,2,0},
-                                       Vector{0,1,1},
-                                       Vector{-1,1,0}));
-  scene_objects.push_back(new Triangle(Vector{0,2,0},
-                                       Vector{-1,1,0},
-                                       Vector{0,1,-1}));
-  scene_objects.push_back(new Triangle(Vector{0,2,0},
-                                       Vector{0,1,-1},
-                                       Vector{1,1,0}));
-  scene_objects.push_back(new Triangle(Vector{0,2,0},
-                                       Vector{1,1,0},
-                                       Vector{0,1,1}));
+  scene_objects.push_back(new Triangle{Vector{ 0, 2, 0},
+                                       Vector{ 0, 1, 1},
+                                       Vector{-1, 1, 0}});
+  scene_objects.back()->set_diffuse_factor(0);
+  scene_objects.push_back(new Triangle{Vector{ 0, 2, 0},
+                                       Vector{ 1, 1, 0},
+                                       Vector{ 0, 1, 1}});
+  scene_objects.back()->set_diffuse_factor(0);
+  scene_objects.push_back(new Triangle{Vector{ 0, 2, 0},
+                                       Vector{ 0, 1,-1},
+                                       Vector{ 1, 1, 0}});
+  scene_objects.back()->set_diffuse_factor(0);
+  scene_objects.push_back(new Triangle{Vector{ 0, 2, 0},
+                                       Vector{-1, 1, 0},
+                                       Vector{ 0, 1,-1}});
+  scene_objects.back()->set_diffuse_factor(0);
+
 
   const int max_hit_bounces{6};
   const int pixel_samples{64};
@@ -355,9 +416,9 @@ int main(){
   outfile << "P6 512 512 255 ";
 
   for(int y = 256; y >= -255; --y) {   //For each row
-
-    std::cout << "Progress: " << std::setw(3) << (int)(100*(-y+256+1)/512.f) << "%\r" << std::flush;
-
+    std::cout << "Progress: " 
+              << std::setw(3) << (int)(100*(-y+256+1)/512.f) 
+              << "%\r" << std::flush;
     for(int x = -255; x <= 256; ++x) {   //For each pixel in a row
 
       Vector final_color{0,0,0};
@@ -374,7 +435,7 @@ int main(){
         Vector ray_origin{0,1,-4};
         /// Random offset on ray direction for antialiasing
         Vector ray_direction{right*(x-0.5+uniform_random_01()) + 
-                             down*(y-0.5+uniform_random_01()) + 
+                                up*(y-0.5+uniform_random_01()) + 
                              ahead};
 
         ray_origin = ray_origin + sensor_shift;
@@ -385,6 +446,8 @@ int main(){
                normal,
                hit_color;
         float distance_to_hit, 
+              diffuse_factor_at_hit, 
+              specular_factor_at_hit, 
               reflectivity_at_hit, 
               ray_energy_left=1;
 
@@ -400,6 +463,8 @@ int main(){
                                       normal,
                                       distance_to_hit,
                                       hit_color,
+                                      diffuse_factor_at_hit,
+                                      specular_factor_at_hit,
                                       reflectivity_at_hit))
             {
               an_object_was_hit = true;
@@ -417,14 +482,21 @@ int main(){
                                               normal,
                                               distance_to_hit,
                                               hit_color,
+                                              diffuse_factor_at_hit,
+                                              specular_factor_at_hit,
                                               reflectivity_at_hit);
             ray_origin = ray_hit_at;
             ray_direction = ray_bounced_direction;
           } else {
             if (ray_direction.y < 0) {
               hit_color = get_ground_color(ray_origin, ray_direction, ray_hit_at);
-              normal = {0,0.1,0};
+              normal = {0,1,0};
+              ray_bounced_direction = !(ray_direction + !normal*(-ray_direction%!normal)*2);
+              ray_origin = ray_hit_at;
+              ray_direction = ray_bounced_direction;
               reflectivity_at_hit = 0;
+              diffuse_factor_at_hit = 1;
+              specular_factor_at_hit = 0;
             } else {
               hit_color = get_sky_color(ray_direction);
               reflectivity_at_hit = 0;
@@ -434,39 +506,36 @@ int main(){
 
 
           /// Compute lighting at hit point
-          /// Random offset to light position for soft shadows and broader
-          /// highlights
-          Vector light_at{1+uniform_random_01()*10,
-                          100+uniform_random_01()*10,
-                          0+uniform_random_01()*10};
+          Vector light_at{uniform_random_01()*10,
+                          100,
+                          uniform_random_01()*10};
           bool point_is_directly_lit{true};
           for (const auto& object : scene_objects) {
+            /// Dummy variables
             Vector a,b,c,f;
-            float d,e;
+            float d,e,di,sp;
             if (object->is_hit_by_ray(ray_hit_at, 
                                       !(light_at-ray_hit_at), 
-                                      a, b, f, d, c, e))
+                                      a, b, f, d, c, di, sp, e))
             {
               point_is_directly_lit = false;
               break; 
             }
           }
           if (not sky_hit) {
+            const float ambient_light = 0.3;
             if (point_is_directly_lit) {
-              const float specular_factor = normal%!(light_at-ray_hit_at);
-              const float highlight = std::max(0.f,
-                                      std::min(!(light_at-ray_hit_at)%ray_direction,
-                                               1.f));
-              hit_color = hit_color 
-                          + Vector{255,255,255} * (0.5-0.5*reflectivity_at_hit) * specular_factor
-                          + Vector{255,255,255} * 10 * std::pow(highlight,99);
+              const float diffuse_light = std::max(0.f, normal%!(light_at-ray_hit_at));
+              const float specular_light = std::max(0.f, !(light_at-ray_hit_at)%ray_direction);
+              hit_color = hit_color*(ambient_light+diffuse_light)*diffuse_factor_at_hit + 
+                          Vector{255,255,255}*2*std::pow(specular_light,99)*specular_factor_at_hit;
             } else {
-              hit_color = hit_color*0.3;
+              hit_color = hit_color*ambient_light*diffuse_factor_at_hit;
             }
           }
 
 
-          color = color + (hit_color*(ray_energy_left*(1-reflectivity_at_hit)));
+          color = color + (hit_color*(ray_energy_left));
           ray_energy_left *= reflectivity_at_hit;
           if (ray_energy_left <= 0)
             break;

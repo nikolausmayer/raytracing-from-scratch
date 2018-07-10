@@ -2,16 +2,9 @@
  * Author: Nikolaus Mayer, 2018 (mayern@cs.uni-freiburg.de)
  */
 
-#include <cmath>
 #include <cstdlib>
-#include <cstdio>
 #include <fstream>
-#include <functional>
-#include <iomanip>
 #include <iostream>
-#include <limits>
-#include <sstream>
-#include <vector>
 
 
 
@@ -35,6 +28,9 @@ int main(){
 
   /// Image done
   outfile.close();
+
+  /// Bye!
+  return EXIT_SUCCESS;
 }
 
 
