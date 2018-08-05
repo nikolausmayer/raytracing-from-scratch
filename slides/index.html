@@ -1,0 +1,4693 @@
+<!doctype html>
+<html lang='en'>
+
+  <head>
+    <meta charset='utf-8'>
+
+    <title> Nikolaus Mayer - Let’s Build a Raytracer</title>
+
+    <meta name='description' content=''>
+    <meta name='author' content='Nikolaus Mayer'>
+
+    <meta name='viewport' content='width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, minimal-ui'>
+
+    <link rel='stylesheet' href='css/reveal.css'>
+    <link rel='stylesheet' href='css/theme/white.css' id='theme'>
+
+    <!-- Prism.js -->
+    <link rel='stylesheet' href='css/prism.css'>
+
+    <!--[if lt IE 9]>
+      <script src='lib/js/html5shiv.js'></script>
+    <![endif]-->
+
+    <style>
+      .reveal {
+        //background-image: linear-gradient(135deg,
+        //                                  rgba(255, 194, 51, 0.4) 20%,
+        //                                  rgba(45, 135, 190, 0.4) 20%,
+        //                                  rgba(45, 135, 190, 0.4) 40%,
+        //                                  rgba(133, 85, 176, 0.4) 40%,
+        //                                  rgba(133, 85, 176, 0.4) 60%,
+        //                                  rgba(230, 122, 57, 0.4) 60%,
+        //                                  rgba(230, 122, 57, 0.4) 80%,
+        //                                  rgba(51, 183, 153, 0.4) 80%);
+        //background-image: url('assets/img/wallpaper-crop.jpg');
+        //background-size: cover;
+
+        //padding: 2rem;
+        //font-family: 'Roboto', sans-serif;
+      }
+
+      .reveal .slides {
+        margin: 34px auto;
+      }
+
+      .reveal .footer-center {
+        position: fixed;
+        bottom: 1em;
+        right: 0em;
+        left: 0em;
+        text-align: center;
+        color: #999;
+        font-size: 12pt;
+      }  
+
+      .reveal section img {
+        border: none;
+        box-shadow: none;
+      }
+      
+      .reveal section {
+        text-align: left;
+      }
+      .reveal section p {
+        font-size: 120%;
+      }
+
+      h3.phantom, 
+      div.phantom,
+      div.phantom h4,
+      pre.phantom,
+      table.phantom,
+      span.phantom{
+        color: transparent;
+      }
+
+      span.my_highlight, div.my_highlight {
+        background-color: yellow;
+        padding-left:  5px;
+        padding-right: 5px;
+        margin-left:  -5px;
+        margin-right: -5px;
+      }
+
+      @-webkit-keyframes angery {
+        0% {
+          -webkit-transform:translate(-5px,0px) rotate(0deg)
+        }
+        50% {
+          -webkit-transform:translate(5px,0px) rotate(0deg)
+        }
+        100% {
+          -webkit-transform:translate(0px,0px) rotate(-1deg)
+        }
+      }
+      @-moz-keyframes angery {
+        0% {
+          -webkit-transform:translate(-5px,0px) rotate(0deg)
+        }
+        50% {
+          -webkit-transform:translate(5px,0px) rotate(0deg)
+        }
+        100% {
+          -webkit-transform:translate(0px,0px) rotate(-1deg)
+        }
+      }
+      .angry {
+        animation:angery 0.1s linear infinite;
+        -webkit-animation:angery 0.1s linear infinite;
+        -moz-animation:angery 0.1s linear infinite;
+      }
+      .angery {
+        animation:angery 0.06s linear infinite;
+        -webkit-animation:angery 0.06s linear infinite;
+        -moz-animation:angery 0.06s linear infinite;
+      }
+
+      @-webkit-keyframes rotate {
+        0% {
+          -webkit-transform:rotate(0deg)
+        }
+        100% {
+          -webkit-transform:rotate(360deg)
+        }
+      }
+      .rotating {
+        animation:rotate 2s linear infinite;
+        -webkit-animation:rotate 2s linear infinite;
+        -moz-animation:rotate 2s linear infinite;
+      }
+
+      .reveal section table tr td {
+        text-align: center;
+        border: none;
+        padding: 0px;
+      }
+
+
+      /* grid-area: y0 / x0 / y1 / x1 */
+      .slide-grid-container {
+        display: grid;
+        width: 100%;
+        height: 100%;
+        grid-template-columns: repeat(10, 10%);
+        grid-template-rows: repeat(20, 5%);
+      }
+
+      .reveal .slides .gi {
+        font-size: 48px;
+        /*border: 1px solid black;*/
+      }
+      .gi-all {
+        grid-area: 3 / 1 / 21 / 11;
+      }
+      .gi-left {
+        grid-area: 3 / 1 / 21 / 6;
+      }
+      .gi-right {
+        grid-area: 3 / 6 / 21 / 11;
+      }
+
+      .multilineheader {
+        line-height: 1.2em;
+      }
+      .ml-l {
+        grid-area: 1 / 1 / 3 / 8;
+      }
+      .ml-r {
+        grid-area: 1 / 4 / 3 / 11;
+        justify-self: end;
+      }
+      .ml-highlight, .ml-l > span {
+        display: inline;
+        background: #003592;
+        color: #fff;
+        padding: 0;
+        box-decoration-break: clone;
+        box-shadow:  .3em  .1em 0 #003592,
+                     .3em -.1em 0 #003592,
+                    -.2em  .1em 0 #003592,
+                    -.2em -.1em 0 #003592;
+      }
+      .ml-highlight-sub, .ml-r > span {
+        display: inline;
+        background: #337eff;
+        color: #fff;
+        padding: 0;
+        box-decoration-break: clone;
+        box-shadow:  .3em  .1em 0 #337eff,
+                     .3em -.1em 0 #337eff,
+                    -.2em  .1em 0 #337eff,
+                    -.2em -.1em 0 #337eff;
+      }
+
+      pre[class*="language-"]>code {
+        font-size: 36px;
+        font-weight: bold;
+      }
+      .reveal pre code {
+        max-height: none;
+      }
+
+      @keyframes yayAnimation {
+          0% { content: '\\(•◡•)/'; }
+         50% { content: '\\(^o^)/'; }
+        100% { content: '\\(•◡•)/'; }
+      }
+      .yay::after {
+        animation: yayAnimation 2s linear infinite alternate;
+        content: 'el';
+      }
+
+    </style>
+  </head>
+
+  <body>
+
+    <div class='reveal'>
+      <div class='footer-center'>
+        Nikolaus Mayer — Let’s build a raytracer, from scratch
+      </div>
+
+      <div class='slides'>
+
+
+        <!--<section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              Bevor wir anfangen...
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              ...braucht ihr dies:
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <ul style='margin-bottom: 30px;'>
+                <li> C++-Compiler mit C++11-Support (<code>g++</code> &geq; v4.8) </li>
+                <li> eine grafische Oberfläche (zum Bilder bewundern) </li>
+                <li> ein Bildanzeigeprogramm (<code><u>feh</u></code>, <code>eog</code>, <code>display</code>, <code>geeqie</code> ...) </li>
+              </ul>
+              <br>
+              <br>
+              <br>
+              <br>
+              <ul>
+                <li> die Slides (CC-BY-NC) und allen Code (MIT) gibt's später hier: </li><br>
+                <code><a href='https://github.com/nikolausmayer/raytracing-from-scratch'><b>github.com/nikolausmayer</b>/raytracing-from-scratch</a></code>
+              </ul>
+            </div>
+
+          </div>
+        </section>-->
+
+
+        <section>
+          <div style="width: 100%; text-align: center;">
+            <br/>
+            <p> <span class='ml-highlight' style='font-size: 140%;'>Nikolaus Mayer</span> </p>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class='multilineheader'><span class='ml-highlight'>
+              Let’s&nbsp;&nbsp;build&nbsp;&nbsp;a&nbsp;&nbsp;Raytracer
+            </span></h1>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <p> 
+              <span>Sommercampus 2018</span><br/>
+              <span>Technische Fakult&auml;t</span><br/>
+              <span>Universit&auml;t Freiburg</span>
+              </p>
+          </div>
+        </section>
+
+
+        <section>
+          <h2 class='multilineheader'><span class='ml-highlight'>
+            Warum dieser Kurs?
+          </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> Fakt: Computergrafik ist cool </li>
+                <li class='fragment'> Fakt: OpenGL ist eine Katastrophe (in Benutzerfreundlichkeit) </li>
+                <li class='fragment'> Fakt: Blender ist eine Black Box </li>
+                <br>
+                <li class='fragment'> meine Meinung: was man nie selbst gemacht hat, das hat man auch nie richtig verstanden </li>
+                <br>
+                <li class='fragment'> Konsequenz: man sollte sich einen Renderer selbst erarbeiten </li>
+                <br>
+                <li class='fragment'> dieser Kurs will die nächstbeste Alternative sein \Ü/ </li>
+              </ul>
+            </div>
+        </section>
+
+
+        <section>
+          <h2 class='multilineheader'><span class='ml-highlight'>
+            Übersicht
+          </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li>    Einleitung </li>
+                <li> 0. Ein leeres Bild </li>
+                <li> 1. Himmel und Erde </li>
+                <li> 2. Dreiecke </li>
+                <li> 3. Raytracing </li>
+                <li> 4. Energie </li>
+                <li> 5. Kugeln </li>
+                <li> 6. Licht </li>
+                <li> 7. Schatten </li>
+                <li> 8. Allerhand Zufälliges </li>
+                <li> 9. Texturen </li>
+                <li> █. Bonus: ████████ </li>
+              </ul>
+            </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              Einleitung
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              "Computergrafik"
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Aus Modellwissen Bilder generieren </li>
+              </ul>
+              <table width="100%">
+                <tr>
+                  <td width="50%">
+                    <video data-autoplay loop controls style='width: 100%;'>
+                      <source src='assets/video/suzanne/wireframe2.ogv' type='video/ogg'>
+                    </video>
+                  </td>
+                  <td width="50%">
+                    <video data-autoplay loop controls style='width: 100%;'>
+                      <source src='assets/video/suzanne/hemilight2.ogv' type='video/ogg'>
+                    </video>
+                  </td>
+                </tr>
+                <tr>
+                  <td width="50%">
+                    <video data-autoplay loop controls style='width: 100%;'>
+                      <source src='assets/video/suzanne/sun2.ogv' type='video/ogg'>
+                    </video>
+                  </td>
+                  <td width="50%">
+                    <video data-autoplay loop controls style='width: 100%;'>
+                      <source src='assets/video/suzanne/final2.ogv' type='video/ogg'>
+                    </video>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              Einleitung
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Raytracing vs Rasterisierung
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Rasterisierung: Schritt-für-Schritt-Pipeline, ganzes Bild </li>
+              </ul>
+              <table width="100%" style="margin-top: 20px;">
+                <tr>
+                  <td width="32%">
+                    <img src='assets/img/suzanne/color.png'/>
+                  </td>
+                  <td width="32%">
+                    <img src='assets/img/suzanne/diffuse.png'/>
+                  </td>
+                  <td width="32%">
+                    <img src='assets/img/suzanne/specular.png'/>
+                  </td>
+                </tr>
+                <tr>
+                  <td width="32%">
+                    <img src='assets/img/suzanne/depth.png'/>
+                  </td>
+                  <td width="32%">
+                    <img src='assets/img/suzanne/ao.png'/>
+                  </td>
+                  <td width="32%">
+                    <img src='assets/img/suzanne/combined.png'/>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              Einleitung
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Raytracing vs Rasterisierung
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul style='margin-bottom: 30px;'>
+                <li> Raytracing: Pixel-für-Pixel, jeder Pixel vollständig </li>
+              </ul>
+              <div style='width: 100%; text-align: center;'>
+                <video data-autoplay loop controls style='width: 50%;'>
+                  <source src='assets/video/line-by-line.ogv' type='video/ogg'>
+                </video>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              Einleitung
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Raytracing vs Rasterisierung
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul style='margin-bottom: 30px;'>
+                <li class='fragment'> Rasterisierung: </li>
+                  <ul style='margin-bottom: 30px;'>
+                    <li class='fragment'>ultra-optimierte Hardware (GPUs)</li>
+                    <li class='fragment'>ultra-optimierte Engines und Tools (OpenGL)</li>
+                    <li class='fragment'>(daher auch) schnell</li>
+                    <li class='fragment'>viele Effekte brauchen Tricks und Postprocessing</li>
+                  </ul>
+
+                <li class='fragment'> Raytracing: </li>
+                  <ul style='margin-bottom: 30px;'>
+                    <li class='fragment'>Reflexionen, Tiefenunschärfe etc. "schon dabei"</li>
+                    <li class='fragment'>kann physikalisch korrekt sein</li>
+                    <li class='fragment'>wird benutzt für Simulationen</li>
+                  </ul>
+
+                <li class='fragment'> beide sind aktive Forschungsgebiete! </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              Einleitung
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Literaturempfehlungen
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul style='margin-bottom: 30px;'>
+                <li class='fragment'> "Graphics Study"-Blogposts von Adrian Courrèges </li>
+                <li class='fragment'> "Physically Based Rendering" von Pharr/Humphreys </li>
+                <li class='fragment'> www.scratchapixel.com </li>
+                <li class='fragment'> Konferenzen: SIGGRAPH, SIGGRAPH Asia, EuroGraphics </li>
+                <li class='fragment'> auch: GDC (Entwicklerkonferenz mit Talks über Engines) </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              Einleitung
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Kurs-Struktur
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Einteilung in einzelne "Level", jeweils mit: </li>
+                  <ul>
+                    <li> Motivation </li>
+                    <li> Inhalt (mit Theorie) </li>
+                    <li> Coding-Session </li>
+                    <li> evtl. Ideen-Ecke </li>
+                  </ul>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div style="width: 100%; text-align: center;">
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class='multilineheader'><span class='ml-highlight'>
+              Level 0 — Ein leeres Bild
+            </span></h1>
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #0 Ein leeres Bild
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+            Was ist ein Bild?
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> eine geordnete Sammlung von Pixeln </li>
+              </ul>
+
+              <table width="100%" style="margin-top: 20px;">
+                <tr>
+                  <td class='fragment' width="25%">
+                    <img src='assets/img/levels/level-8.png'/>
+                  </td>
+                  <td class='fragment' width="25%">
+                    <img src='assets/img/levels/level-8-zoom1.png'/>
+                  </td>
+                  <td class='fragment' width="25%">
+                    <img src='assets/img/levels/level-8-zoom2.png'/>
+                  </td>
+                  <td class='fragment' width="25%">
+                    <img src='assets/img/levels/level-8-zoom2-annot.png'/>
+                  </td>
+                </tr>
+              </table>
+
+              <ul style='margin-top: 10px;'>
+                <li class='fragment'> Pixel sind Tripel (<u>R</u>ot-<u>G</u>rün-<u>B</u>lau) </li>              
+                <li class='fragment'> ganze Zahlen 0–255 pro Farbkanal </li>              
+                <li class='fragment'> 16.7 Millionen Farben!!!1 </li>              
+              </ul>
+            </div>
+            <div class='fragment' data-index=7 style='grid-area: 12/7/21/11;'>
+              <img src='assets/img/external/colorcube.png'/>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #0 Ein leeres Bild
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+            Das PPM-Bildformat
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> "Portable PixMap" </li>
+                <li class='fragment'> das denkbar einfachste Speicherformat </li>
+                <li class='fragment'> (keine Kompression, sehr ineffizient) </li>
+                <li class='fragment'> 3 Farben (RGB) pro Pixel </li>
+                <li class='fragment'> Header: <code>P3 BREITE HÖHE MAXIMUM</code> </li>
+                <li class='fragment'> bei uns: <code>P3 512 512 255</code> (mehr als 255 geht nicht) </li>
+                <li class='fragment'> <code>P3</code> heißt "ASCII-PPM" → menschenlesbar \Ü/
+                <li class='fragment'> <code>P3 512 512 255 255 0 0 255 0 0 255 0 0 [...]</code> </li>
+                <li class='fragment'> <code>P<u>6</u> 512 512 255 ÿ^@^@ÿ^@^@ÿ^@^@[...]</code>  (binär-PPM) </li>
+                <li class='fragment'> links-nach-rechts, oben-nach-unten, Leerzeichentrennung </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #0 Ein leeres Bild
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+            Der Code-Grundstein
+            </span></h2>
+
+            <div class='gi gi-all fragment'>
+
+              <pre class='language-cpp'><code class='language-cpp'>std::ofstream outfile("img.ppm");
+outfile << "P3 512 512 255";
+
+for(int y = 0; y < 512; ++y) {    /// Rows
+  for(int x = 0; x < 512; ++x) {  /// Columns
+    outfile << " " << 255 
+            << " " << 0 
+            << " " << 0;
+  }
+}</code></pre>
+              <ul>
+                <li class='fragment'> 512 · 512 = <b>262144 rote Pixel</b> </li>
+                <li class='fragment'> (wir könnten auch&nbsp; <code>&lt;&lt; " 255 0 0"</code> &nbsp;schreiben </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #0 Ein leeres Bild
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'>Dummy-Bild</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #0 Ein leeres Bild
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-0.png'>
+                <br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #0 Ein leeres Bild
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Schleifengrenzen (&lt; / &leq;) </li>
+                <li> Dateigröße: <code><b>$ du --bytes img.ppm</b></code> </li>
+                  <ul>
+                    <li> "<code>P3 512 512 255</code>" = 14 Bytes Header </li>
+                    <li> "<code> 255 0 0</code>" = 8 Bytes pro Pixel (ASCII: 1 Byte/Zeichen) </li>
+                    <li> → 14 + 8 · (512 · 512) = <u>2097166</u> Bytes </li<
+                  </ul>
+                <li> Dateiinhalt: <code><b>$ head -c 100 img.ppm</b></code> </li>
+                <pre class='language-cpp'><code class='language-cpp'>P3 512 512 255 255 0 0 255 0 0 255 0 0 255 0 0 ... </code></pre>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div style="width: 100%; text-align: center;">
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class='multilineheader'><span class='ml-highlight'>
+              Level 1 — Himmel und Erde
+            </span></h1>
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Was ist eine Kamera?
+            </span></h2>
+
+            <div class='gi gi-left'>
+              <ul>
+                <li class='fragment'> Annahme: <i>Lochkamera</i> </li>
+                <li class='fragment'> (keine Objektiv-Effekte) </li>
+                <li class='fragment'> Eigenschaften: </li>
+                  <ul>
+                    <li class='fragment'> Projektionszentrum </li>
+                    <li class='fragment'> Blickrichtung </li>
+                    <li class='fragment'> "Brennweite" (=Zoom) </li>
+                    <li class='fragment'> Bildbreite/-höhe beliebig! </li>
+                  </ul>
+                <li class='fragment'> Annahme: 4x4-Pixel-Bild </li>
+              </ul>
+            </div>
+            <div class='gi gi-right fragment' data-index=1>
+              <br>
+              <img src='assets/img/blender-camera/1.png'>
+            </div>
+            <div class='gi gi-right fragment current-visible'>
+              <br>
+              <img src='assets/img/blender-camera/cam-view.png'>
+            </div>
+            <div class='gi gi-right fragment'>
+              <br>
+              <img src='assets/img/blender-camera/1.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Welt-Koordinatensystem
+            </span></h2>
+
+            <div class='gi gi-left'>
+              <ul>
+                <li class='fragment'> Z-Achse "in Blickrichtung" </li>
+                <li class='fragment'> zusammen mit X/Y: ein Koordinatensystem </li>
+                <li class='fragment'> hier: linke-Hand-System </li>
+                <li class='fragment'> X NACH RECHTS </li>
+                <li class='fragment'> Y NACH OBEN </li>
+                <li class='fragment'> Z NACH VORNE </li>
+                <br>
+                <li class='fragment'> egal, welches System, aber: </li>
+                <li class='fragment'> <i>man muss sich entscheiden</i> </li>
+                <li class='fragment'> <i>und konsistent bleiben</i> </li>
+              </ul>
+            </div>
+            <div class='gi gi-right'>
+              <br>
+              <img src='assets/img/blender-camera/2.png'>
+            </div>
+            <div class='gi gi-right fragment' data-index=3>
+              <br>
+              <img src='assets/img/blender-camera/3.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Strahlen basteln
+            </span></h2>
+
+            <div class='gi gi-left'>
+              <ul>
+                <li> Z-Achse "in Blickrichtung" </li>
+                <li> zusammen mit X/Y: ein Koordinatensystem </li>
+                <li> hier: linke-Hand-System </li>
+                <li class='fragment'> <b>Strahl = 3D-Vektor</b> </li>
+                <li class='fragment'> <b>Strahl = Vektorzug</b> </li>
+                <li class='fragment'> Längenverhältnis Z:X bzw. Y definiert den Zoomfaktor </li>
+                <li class='fragment'> Strahllänge normalisieren! </li>
+              </ul>
+            </div>
+            <div class='gi gi-right'>
+              <br>
+              <img src='assets/img/blender-camera/3.png'>
+            </div>
+            <div class='gi gi-right fragment' data-index=2>
+              <br>
+              <img src='assets/img/blender-camera/4.png'>
+            </div>
+            <div class='gi gi-right fragment' data-index=4>
+              <br>
+              <img src='assets/img/blender-camera/5.png'>
+            </div>
+            <div class='gi gi-right fragment' data-index=5>
+              <br>
+              <img src='assets/img/blender-camera/6.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'>Vektor-Klasse</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Pixel-Offset
+            </span></h2>
+
+            <div class='gi gi-left'>
+              <ul>
+                <li class='fragment'> zwei Bedingungen: </li>
+                  <ul>
+                    <li class='fragment'> 1. Strahlen gehen durch Pixelmittelpunkte </li>
+                    <li class='fragment'> 2. (0,0) ist in der Bildmitte </li>
+                  </ul>
+                  <li class='fragment'> hier: Breite, Höhe <i>gerade</i> </li>
+                  <li class='fragment'> (0,2,4,... statt 1,3,5,...)</li>
+                  <li class='fragment'> → ganzzahlige Strahl-Koordinaten sind <i>falsch</i>! </li>
+                  <li class='fragment'> Pixelzentren (0.5,0.5), (0.5,1.5), ...</li>
+              </ul>
+            </div>
+            <div class='gi gi-right'>
+              <img src='assets/img/pixeloffset/offset--1.png'>
+            </div>
+            <div class='gi gi-right fragment' data-index=3>
+              <img src='assets/img/pixeloffset/offset-0.png'>
+            </div>
+            <div class='gi gi-right fragment' data-index=4>
+              <img src='assets/img/pixeloffset/offset-1.png'>
+            </div>
+            <div class='gi gi-right fragment' data-index=5>
+              <img src='assets/img/pixeloffset/offset-0.png'>
+            </div>
+            <div class='gi gi-right fragment' data-index=7>
+              <img src='assets/img/pixeloffset/offset-2.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Pixel-Offset
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <li class='fragment'> (0,0) ist in der Bildmitte </li>
+              <span class='fragment'> bisher: </span>
+              <pre class='language-cpp fragment'><code class='language-cpp'>
+for(int y = 0; y < 512; ++y) {    /// Rows
+  for(int x = 0; x < 512; ++x) {  /// Columns
+    ...
+</code></pre>
+              <br>
+              <span class='fragment'> jetzt: Pixelzentren mit korrekten Koordinaten </span>
+              <pre class='language-cpp fragment'><code class='language-cpp'>
+for(int y = 256; y >= -255; --y) {    /// Rows
+  for(int x = -255; x <= 256; ++x) {  /// Columns
+    ...
+    ...(x - 0.5)...
+    ...(y - 0.5)...
+    ...
+</code></pre>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'>Strahlkonstruktion</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Oben und Unten
+            </span></h2>
+
+            <div class='gi gi-left'>
+              <ul>
+                <li class='fragment'> Kamera zeigt "geradeaus" </li>
+                <li class='fragment'> (für mehr bräuchten wir Rotationsmatrizen..) </li>
+                <li class='fragment'> unendlicher flacher Boden, Y=0 (XZ-Ebene) </li>
+                <li class='fragment'> Kamera nicht auf Y=0! </li>
+                <li class='fragment'> Strahl trifft Boden, falls... </li>
+                  <ul>
+                    <li class='fragment'> ... Strahl.y &lt; 0 ! </li>
+                  </ul>
+                <li class='fragment'> Strahl trifft Himmel, falls... </li>
+                  <ul>
+                    <li class='fragment'> ... Strahl.y &geq; 0 ! </li>
+                  </ul>
+              </ul>
+            </div>
+            <div class='gi gi-right'>
+              <img src='assets/img/blender-camera/6.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'> Boden und Himmel </span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-0.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-1a.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Koordinatensystemvektoren </li>
+                <li> <code>Vector::operator+</code>, <code>Vector::operator*</code> </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Himmel 2.0
+            </span></h2>
+
+            <div class='gi' style='grid-area: 3 / 1 / 21 / 9;'>
+              <ul>
+                <li class='fragment'> alte Himmelsfarbe: konstant </li>
+                <li class='fragment'> alte Himmelsfarbe: abhängig vom Strahlwinkel </li>
+                  <ul>
+                    <li class='fragment'> horizontal: irgendwie blau </li>
+                    <li class='fragment'> vertikal: schwarz </li>
+                    <li class='fragment'> (totale Gestaltungsfreiheit!) </li>
+                  </ul>
+                  <li class='fragment'> horizontal: Strahl.y = 0, vertikal: Strahl.y = 1 </li>
+                  <li class='fragment'> Interpolation zwischen Farbe und schwarz:<br>
+                       <code>[Farbe] * std::pow(1-ray_direction.y,2)</code> </li>
+              </ul>
+            </div>
+            <div class='gi fragment' data-index=3
+                 style='grid-area: 3 / 9 / 21 / 11;'>
+              <img height='80%' src='assets/img/levels/sky2.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'> Himmel 2.0 </span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-1a.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-1ab.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Erde 2.0
+            </span></h2>
+
+            <div class='gi' style='grid-area: 3 / 1 / 21 / 9;'>
+              <ul>
+                <li class='fragment'> nur rot ist langweilig </li>
+                <li class='fragment'> kein Raumgefühl </li>
+                <li class='fragment'> neuer Boden: Schachbrettmuster </li>
+                <li class='fragment'> Bodenkoordinate bestimmt Karoposition </li>
+                <li class='fragment'> → wir brauchen den "gesehenen" Punkt </li>
+                <li class='fragment'> → Schnittpunkt zwischen Strahl und "Y=0" </li>
+                <li class='fragment'> <code>Y = 0 = Kamera.y + Distanz · Strahl.y</code> </li>
+                <li class='fragment'> eine Gleichung, eine Unbekannte → \Ü/ </li>
+                <li class='fragment'> <code>Distanz := -Kamera.y / Strahl.y </code> </li>
+              </ul>
+            </div>
+            <div class='gi fragment' data-index=4
+                 style='grid-area: 3 / 9 / 21 / 11;'>
+              <img height='80%' src='assets/img/ground/ground2-0.png'>
+            </div>
+            <div class='gi fragment' data-index=6
+                 style='grid-area: 3 / 9 / 21 / 11;'>
+              <img height='80%' src='assets/img/ground/ground2-1.png'>
+            </div>
+            <div class='gi fragment' data-index=7
+                 style='grid-area: 3 / 9 / 21 / 11;'>
+              <img height='80%' src='assets/img/ground/ground2-2.png'>
+            </div>
+            <div class='gi fragment' data-index=8
+                 style='grid-area: 3 / 9 / 21 / 11;'>
+              <img height='80%' src='assets/img/ground/ground2-3.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Erde 2.0
+            </span></h2>
+
+            <div class='gi' style='grid-area: 3 / 1 / 21 / 9;'>
+              <ul>
+                <li class='fragment'> <code>Distanz := -Kamera.y / Strahl.y </code> </li>
+                <li class='fragment'> <code>X := Kamera.x + Distanz · Strahl.x </code> </li>
+                <li class='fragment'> <code>Z := Kamera.z + Distanz · Strahl.z </code> </li>
+                <li class='fragment'> Schachbrett: X und Z beide gerade/ungerade </li>
+                <li class='fragment'> Stolperfalle: <code>std::abs</code> auf negativen Zahlen! </li>
+              </ul>
+            </div>
+            <div class='gi' style='grid-area: 3 / 9 / 21 / 11;'>
+              <img height='80%' src='assets/img/levels/ground2.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'> Erde 2.0 </span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-1ab.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-1b.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #1 Himmel und Erde
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Koordinatensystemvektoren </li>
+                <li> Strahllängennormalisierung </li>
+                <li> <code>(int)std::abs(std::floor(...))%2</code> </li>
+                <li> Strahl trifft Boden, falls <code>Strahl.y < 0</code> </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div style="width: 100%; text-align: center;">
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class='multilineheader'><span class='ml-highlight'>
+              Level 2 — Dreiecke
+            </span></h1>
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #2 Dreiecke
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Warum Dreiecke?
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> die Basis der meisten Polygone </li>
+                <li class='fragment'> (Polygone sind <i>die</i> Basis der Computergrafik) </li>
+                <li class='fragment'> einfach zu behandeln </li>
+                <li class='fragment'> außerdem... </li>
+              </ul>
+            </div>
+            <div class='fragment' 
+                 style='grid-area: 8 / 1 / 21 / 11; text-align: center;'>
+              <img src='assets/img/dollar0.png'>
+            </div>
+            <div class='fragment' 
+                 style='grid-area: 8 / 1 / 21 / 6; text-align: center;'>
+              <img src='assets/img/dollar1.png'>
+            </div>
+            <div class='fragment' 
+                 style='grid-area: 8 / 6 / 21 / 11; text-align: center;'>
+              <img src='assets/img/dollar2.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #2 Dreiecke
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Was ist ein Dreieck?
+            </span></h2>
+
+            <div class='gi' style='grid-area: 3 / 1 / 21 / 9;'>
+              <ul>
+                <li class='fragment'> definiert durch 3 Ecken/Vertices 
+                     $$P_0, P_1, P_2$$ 
+                </li>
+                <li class='fragment'> aufgespannt durch 2 Vektoren $\mathbf{u}$, $\mathbf{v}$:
+                     $$\mathbf{u} = P_1 - P_0$$ $$\mathbf{v} = P_2 - P_0$$ 
+                </li>
+                <li class='fragment'> Fläche beschrieben durch Punkte $\{p_i\}$
+                     $$p_i = u\cdot\mathbf{u} + v\cdot\mathbf{v}$$
+                     wobei gilt
+                     $$0 &leq; u,v &leq; 1$$
+                     $$u + v &leq; 1$$ 
+                </li>
+                <li class='fragment'> (äquivalente Formulierung:)
+                     $$p_i = (1-u-v)\cdot P_0 + u\cdot P_1 + v\cdot P_2$$
+                </li>
+              </ul>
+            </div>
+            <div class='gi'
+                 style='grid-area: 4 / 8 / 21 / 11;'>
+              <img src='assets/img/triangle/triangle-0.png'>
+            </div>
+            <div class='gi fragment' data-index=2
+                 style='grid-area: 4 / 8 / 21 / 11;'>
+              <img src='assets/img/triangle/triangle-1.png'>
+            </div>
+            <div class='gi fragment' data-index=4
+                 style='grid-area: 4 / 8 / 21 / 11;'>
+              <img src='assets/img/triangle/triangle-2.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 4 / 8 / 21 / 11;'>
+              <img src='assets/img/triangle/triangle-3.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #2 Dreiecke
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Schnitt-Test Strahl/Dreieck
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> Kamerazentrum $\mathbf{O}$, Strahlrichtung $\mathbf{R}$, Distanz $d$ </li>
+                <li class='fragment'> $P_{0} + u\cdot\mathbf{u} + v\cdot\mathbf{v} = \mathbf{O} + d\cdot\mathbf{R}$ </li>
+                <li class='fragment'> → lineares Gleichungssystem
+                $$P_{0,x} + u\cdot\mathbf{u}_x + v\cdot\mathbf{v}_x = \mathbf{O}_x + d\cdot\mathbf{R}_x$$
+                $$P_{0,y} + u\cdot\mathbf{u}_y + v\cdot\mathbf{v}_y = \mathbf{O}_y + d\cdot\mathbf{R}_y$$
+                $$P_{0,z} + u\cdot\mathbf{u}_z + v\cdot\mathbf{v}_z = \mathbf{O}_z + d\cdot\mathbf{R}_z$$
+                </li>
+                <li class='fragment'> umgestellt:
+                $$0 = P_{0,x} + u\cdot\mathbf{u}_x + v\cdot\mathbf{v}_x - \mathbf{O}_x - d\cdot\mathbf{R}_x$$
+                $$0 = P_{0,y} + u\cdot\mathbf{u}_y + v\cdot\mathbf{v}_y - \mathbf{O}_y - d\cdot\mathbf{R}_y$$
+                $$0 = P_{0,z} + u\cdot\mathbf{u}_z + v\cdot\mathbf{v}_z - \mathbf{O}_z - d\cdot\mathbf{R}_z$$
+                </li>
+                <li class='fragment'> 3 Gleichungen, 3 Unbekannte → \Ü/ </li>
+                <li class='fragment'> aber so viel Arbeit... ಥ_ಥ </li>
+              </ul>
+            </div>
+
+            <div class='gi'
+                 style='grid-area: 4 / 9 / 21 / 11;'>
+              <img src='assets/img/triangle/triangle-3.png'>
+            </div>
+
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #2 Dreiecke
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              LGS-Lösen für Faule
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <span class='fragment'> <code>SymPy</code> kann symbolische Mathe </span>
+
+              <pre class='language-python fragment'><code class='language-python' style='font-size: 32px;'>from sympy import var, solve
+pox,poy,poz,ux,uy,uz,vx,vy,vz,ox,oy,oz,rx,ry,rz,u,v,d = 
+  var('pox poy poz ux uy uz vx vy vz ox oy oz rx ry rz u v d')
+E1 = pox + u*ux + v*vx - ox - d*rx
+E2 = poy + u*uy + v*vy - oy - d*ry
+E3 = poz + u*uz + v*vz - oz - d*rz
+solutions = solve([E1,E2,E3],[u,v,d])
+print(solutions)
+
+{u: [...], v: [...], d: [...]}</code></pre>
+
+              <span class='fragment'> nicht schön, aber korrekt¯\_(ツ)_/¯ </span>
+            </div>
+
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #2 Dreiecke
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Normalenvektor
+            </span></h2>
+
+            <div class='gi' style='grid-area: 3 / 1 / 21 / 8;'>
+              <ul>
+                <li class='fragment'> wir wollen Vorder- und Rückseite unterscheiden können </li>
+                <li class='fragment'> → wir brauchen den Normalenvektor $\mathbf{n}$ </li>
+                <li class='fragment'> (später auch noch für andere Sachen) </li>
+                <li class='fragment'> Kreuzprodukt und linke-Hand-Regel:
+                     $$\mathbf{n} := \mathbf{v} \times \mathbf{u}$$ </li>
+                <li class='fragment'> Konsequenz: Vertex-Reihenfolge wichtig </li>
+                <li class='fragment'> → unsere Dreiecke sind <b>CCW</b> definiert<br>
+                     (<b>c</b>ounter<b>c</b>lock<b>w</b>ise, gg. Uhrzeigersinn) </li>
+                <li class='fragment'> (wenn man "von vorne" drauf guckt) </li>
+              </ul>
+            </div>
+
+            <div class='gi fragment current-visible' data-index=5
+                 style='grid-area: 4 / 8 / 21 / 11;'>
+              <img src='assets/img/triangle/triangle-3.png'>
+            </div>
+            <div class='gi fragment current-visible' data-index=6
+                 style='grid-area: 4 / 8 / 21 / 11; background: #fff; display: block;'>
+              $$\begin{pmatrix}\mathbf{a}_x \\ \mathbf{a}_y \\ \mathbf{a}_z\end{pmatrix} \times
+              \begin{pmatrix}\mathbf{b}_x \\ \mathbf{b}_y \\ \mathbf{b}_z \end{pmatrix}$$
+              $$=$$
+              $$\begin{pmatrix} \mathbf{a}_y\mathbf{b}_z - \mathbf{a}_z\mathbf{b}_y \\
+              \mathbf{a}_z\mathbf{b}_x - \mathbf{a}_x\mathbf{b}_z \\
+              \mathbf{a}_x\mathbf{b}_y - \mathbf{a}_y\mathbf{b}_x
+                \end{pmatrix}$$
+            </div>
+
+            <div class='gi fragment' data-index=7
+                 style='grid-area: 4 / 8 / 21 / 11;'>
+              <img src='assets/img/triangle/triangle-3.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 4 / 8 / 21 / 11;'>
+              <img src='assets/img/triangle/triangle-4.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #2 Dreiecke
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Back-Face Culling 
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> der Normalenvektor bestimmt die Vorderseite </li>
+                <li class='fragment'> (wichtiger für Rasterisierung als für Raytracing (rückwärts gewandte Geometrie kann ignoriert werden)) </li>
+              </ul>
+            </div>
+            <div class='gi fragment' style='grid-area: 7 / 1 / 20 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/triangle/hit0.png'>
+            </div>
+            <div class='gi fragment' style='grid-area: 7 / 1 / 20 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/triangle/hit1.png'>
+            </div>
+            <div class='gi fragment' style='grid-area: 7 / 1 / 20 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/triangle/hit2.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #2 Dreiecke
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Back-Face Culling 
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> der Normalenvektor bestimmt die Vorderseite </li>
+                <li> (wichtiger für Rasterisierung als für Raytracing (rückwärts gewandte Geometrie kann ignoriert werden)) </li>
+                <li class='fragment'> Skalarprodukt<br><br>
+                  $$\begin{pmatrix}\mathbf{a}_x \\ 
+                                   \mathbf{a}_y \\
+                                   \mathbf{a}_z\end{pmatrix} \cdot
+                    \begin{pmatrix}\mathbf{b}_x \\ 
+                                   \mathbf{b}_y \\ 
+                                   \mathbf{b}_z \end{pmatrix} =
+                    \mathbf{a}_x\mathbf{b}_x +
+                    \mathbf{a}_y\mathbf{b}_y +
+                    \mathbf{a}_z\mathbf{b}_z $$ 
+                </li><br>
+                <li class='fragment'> Strahl "sieht" Dreieck <i>genau dann wenn</i><br><br>
+                     $$\mathbf{n}\cdot\mathbf{R} &lt; 0$$ </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #2 Dreiecke
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Implementierung
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> abstrakte <code>Object</code>-Klasse für raytrace-bare Objekte </li>
+                <li class='fragment'> ein <code>Object</code> führt seinen eigenen Schnitttest durch </li>
+                <li class='fragment'> Tiefentest (nur das nächst gelegene Objekt wird gerendert) </li>
+                <li class='fragment'> Objekte haben eine eigene Farbe </li>
+                <li class='fragment'> falls ein Strahl kein Objekt trifft → haben wir schon! </li>
+                <li class='fragment'> alle Objekte in der Szene → <code>std::vector&lt;Object*&gt;</code> </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #2 Dreiecke
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'>Objektklasse, Dreiecke</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #2 Dreiecke
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-1b.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-2.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #2 Dreiecke
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> CCW-Dreiecke </li>
+                <li> $\mathbf{n} := \mathbf{v}\times\mathbf{u}$ &nbsp;und&nbsp; $\mathbf{n}\cdot\mathbf{R} &lt; 0$ </li>
+                <li> Tiefentest (Tiefe kleiner → Objekt "gesehener") </li>
+                <li> nur positive Tiefen </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div style="width: 100%; text-align: center;">
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class='multilineheader'><span class='ml-highlight'>
+              Level 3 — Ray<i>tracing</i>
+            </span></h1>
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #3 Raytracing
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Strahlreflexion
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> einfarbige Objekte sind langweilig </li>
+                <li class='fragment'> <i>Reflexionen</i> sind <u>die</u> Stärke von Raytracing </li>
+                <li class='fragment'> Problemstellung: gegeben Objekt und einfallender Strahl, finde den ausgehenden Strahl </li>
+                <li class='fragment'> einfache Lösung durch geometrische Konstruktion: </li>
+              </ul>
+            </div>
+
+            <div class='gi fragment' data-index=3
+                 style='grid-area: 9 / 1 / 20 / 11; text-align: center;'>
+              <img src='assets/img/normal-reflection/7.png'>
+            </div>
+            <div class='gi fragment' style='grid-area: 9 / 1 / 20 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/normal-reflection/0.png'>
+            </div>
+            <div class='gi fragment' style='grid-area: 9 / 1 / 20 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/normal-reflection/1.png'>
+            </div>
+            <div class='gi fragment' style='grid-area: 9 / 1 / 20 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/normal-reflection/2.png'>
+            </div>
+            <div class='gi fragment' style='grid-area: 9 / 1 / 20 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/normal-reflection/3.png'>
+            </div>
+            <div class='gi fragment' style='grid-area: 9 / 1 / 20 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/normal-reflection/4.png'>
+            </div>
+            <div class='gi fragment' style='grid-area: 9 / 1 / 20 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/normal-reflection/5.png'>
+            </div>
+            <div class='gi fragment' style='grid-area: 9 / 1 / 20 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/normal-reflection/6.png'>
+            </div>
+            <div class='gi fragment' style='grid-area: 9 / 1 / 20 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/normal-reflection/7.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #3 Raytracing
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Strahlreflexion
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> der wichtige Vektor ist:&nbsp; $\mathbf{n}\cdot\left(\mathbf{n}\cdot\left(-\mathbf{R}\right)\right)$ </li>
+                <li class='fragment'> $\mathbf{n}\cdot\left(-\mathbf{R}\right)$&nbsp; ist die Länge der Projektion von &nbsp;$\mathbf{-R}$&nbsp; auf &nbsp;$\mathbf{n}$ </li>
+                <li class='fragment'> Skalarprodukt &nbsp;$\mathbf{n}\cdot\left(-\mathbf{R}\right)$&nbsp; ist ein Skalar (kein Vektor!) </li>
+                <li class='fragment'> wir wollen einen Vektor in Richtung &nbsp;$\mathbf{n}$ </li>
+                <li class='fragment'> → skalare Multiplikation mit &nbsp;$\mathbf{n}$&nbsp; =&nbsp; Skalierung von &nbsp;$\mathbf{n}$ </li>
+              </ul>
+            </div>
+
+            <div class='gi' style='grid-area: 9 / 1 / 20 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/normal-reflection/3.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #3 Raytracing
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Implementierung
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <img src='assets/img/mirror-triangles-render.png'>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #3 Raytracing
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'>Strahlreflexion</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #3 Raytracing
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-2.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-3.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #3 Raytracing
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> CCW-Richtung ist vom Blickwinkel abhängig </li>
+                <li> Back-Face Culling </li>
+                <li> Oberseiten der Dreiecke zur Kamera hin geneigt </li>
+                <li> <code>max_hit_bounces</code> beschränkt die Sichtbarkeit </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div style="width: 100%; text-align: center;">
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class='multilineheader'><span class='ml-highlight'>
+              Level 4 — Lichttransport
+            </span></h1>
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #4 Lichttransport
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Spiegelung und Eigenfarbe
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> perfekte Spiegel sind langweilig </li>
+                <li class='fragment'> Materialien reflektieren unterschiedlich viel Licht </li>
+                <li class='fragment'> (widerspricht nicht unbedingt der Thermodynamik) </li>
+              </ul>
+            </div>
+
+            <div class='gi fragment' style='grid-area: 7 / 1 / 19 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/spheres-materials.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #4 Lichttransport
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Farben mischen
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> unsere Materialien bekommen eine <i>Reflektivität</i> </li>
+                <li class='fragment'> ein Strahl sieht auf seiner Reise viele Farben </li>
+                <li class='fragment'> die endgültige Farbe ist eine Mischung </li>
+                <li class='fragment'> (vorläufige Formulierung ohne Beleuchtung) </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #4 Lichttransport
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'>Farbmischung</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #4 Lichttransport
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-3.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-4.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <!--<section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #4 Lichttransport
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Bla </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>-->
+
+
+        <section>
+          <div style="width: 100%; text-align: center;">
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class='multilineheader'><span class='ml-highlight'>
+              Level 5 — Kugeln
+            </span></h1>
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #5 Kugeln
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Parametrische Formen
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> Polygone erlauben variable Geometrie </li>
+              </ul>
+            </div>
+            <div class='gi fragment' style='grid-area: 7 / 1 / 19 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/dragon/dragon_closeup.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #5 Kugeln
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Parametrische Formen
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Polygone erlauben variable Geometrie </li>
+                <li> aber viel Komplexität braucht viel Geometrie </li>
+              </ul>
+            </div>
+            <div class='gi' style='grid-area: 7 / 1 / 19 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/dragon/dragon_wireframe.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #5 Kugeln
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Parametrische Formen
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Polygone erlauben variable Geometrie </li>
+                <li> aber viel Komplexität braucht viel Geometrie </li>
+                <li> ...viiiiiel Geometrie. (Stanford-Drache: 200.000 Dreiecke) </li>
+              </ul>
+            </div>
+            <div class='gi' style='grid-area: 7 / 1 / 19 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/dragon/dragon_wireframe_close.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #5 Kugeln
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Parametrische Formen
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> echte Renderer benutzen hierachische Strukturen (BVH) </li>
+                <li class='fragment'> trotzdem: Mehr Geometrie → längere Renderzeit </li>
+                <li class='fragment'> Idee: Manche Formen lassen sich <i>berechnen</i> </li>
+              </ul>
+            </div>
+            <div class='gi fragment' style='grid-area: 7 / 1 / 19 / 11; 
+                                   text-align: center;'>
+              <img src='assets/img/spheres-materials.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #5 Kugeln
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Schnitttest
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> Randfall: Strahl "streift" Kugel gerade noch </li>
+                <li class='fragment'> $\mathbf{p} = $ &nbsp;Kamerazentrum $-$ Kugelzentrum;&nbsp; $r = $ &nbsp;Radius </li>
+                <li class='fragment'> Strecke zum Treffpunkt&nbsp; $ = \sqrt{\left(\mathbf{p}\cdot\mathbf{p}\right) + r^2} = \sqrt{||\mathbf{p}||^2 + r^2}$ </li>
+                <li class='fragment'> $ = \mathbf{p} \cdot$ Strahlrichtung </li>
+                <li class='fragment'> (Strahl hat Länge 1) </li>
+                <li class='fragment'> Strahl trifft → Strecke <i>größer</i> </li>
+                <li class='fragment'> trifft nicht → Strecke <i>kleiner</i> </li>
+                <li class='fragment'> → Schnitttest → \Ü/ </li>
+              </ul>
+            </div>
+            <div class='gi' 
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere0.png'>
+            </div>
+            <div class='gi fragment current-visible' data-index=3
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere1.png'>
+            </div>
+            <div class='gi fragment current-visible' data-index=4
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere2.png'>
+            </div>
+            <div class='gi fragment current-visible' data-index=5
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere3.png'>
+            </div>
+            <div class='gi fragment current-visible' data-index=5
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere4.png'>
+            </div>
+            <div class='gi fragment' data-index=6
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere4a.png'>
+            </div>
+            <div class='gi fragment current-visible' data-index=10
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere6.png'>
+            </div>
+            <div class='gi fragment' data-index=11
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere5.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere4b.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #5 Kugeln
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'>Kugel-Schnitttest</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #5 Kugeln
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-4.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-5a.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #5 Kugeln
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> $\mathbf{p}$ zeigt vom <i>Kugel</i>zentrum zum <i>Kamera</i>zentrum </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #5 Kugeln
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Distanzrechnung
+            </span></h2>
+
+            <div class='gi fragment current-visible'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere1.png'>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere7.png'>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere8.png'>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere9.png'>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere10.png'>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere11.png'>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere12.png'>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere13.png'>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere14.png'>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere15.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere16.png'>
+            </div>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> $\mathbf{p} = $ &nbsp;Kamerazentrum $-$ Kugelzentrum;&nbsp; $r = $ &nbsp;Radius </li>
+                <li class='fragment'> $b = -\mathbf{p} \cdot$ Strahlrichtung </li>
+                <li class='fragment'> $s = \sqrt{\left(\mathbf{p}\cdot\mathbf{p}\right) - b^2}$ </li>
+                <li class='fragment'> $t = \sqrt{r^2 - s^2}$ </li>
+                <li class='fragment'> $d = -b - t$ </li>
+                <li class='fragment'> → Distanz → \Ü/ </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #5 Kugeln
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Normalenvektor
+            </span></h2>
+
+            <div class='gi fragment current-visible'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere9.png'>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere17.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 8 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/sphere/sphere18.png'>
+            </div>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> $\mathbf{p} = $ &nbsp;Kamerazentrum $-$ Kugelzentrum;&nbsp; $r = $ &nbsp;Radius </li>
+                <li class='fragment'> Normalenvektor&nbsp; $= \mathbf{p} + d\cdot$ Strahlrichtung </li>
+                <li class='fragment'> (Normalenvektor auf Länge 1 skalieren!) </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #5 Kugeln
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'>Distanzrechnung, Normalenvektor</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #5 Kugeln
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-5a.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-5.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #5 Kugeln
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> $\mathbf{p}$ zeigt vom <i>Kugel</i>zentrum zum <i>Kamera</i>zentrum </li>
+                <li> $\mathbf{b}$ hat negative Länge </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div style="width: 100%; text-align: center;">
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class='multilineheader'><span class='ml-highlight'>
+              Level 6 — Licht
+            </span></h1>
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #6 Licht
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Phong-Beleuchtungsmodell
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> perfekte Farben sind langweilig </li>
+                <li class='fragment'> Licht erzeugt Schatten, Spiegelungen, Schattierungen... </li>
+                <li class='fragment'> "echte" Lichtsimulation wäre hanebüchen teuer </li>
+                <li class='fragment'> wir benutzen das <i>Phong</i>-Modell (oder was ähnliches) </li>
+                <li class='fragment'> (nicht physikalisch korrekt, aber einfach zu berechnen) </li>
+                <li class='fragment'> Materialien haben eigene Koeffizienten pro Komponente </li>
+              </ul>
+            </div>
+            <div class='gi'
+                 style='grid-area: 11 / 1 / 20 / 11; text-align: center;'>
+              <table width="100%" style="margin-top: 20px;">
+                <tr>
+                  <td class='fragment' width="25%" data-index=7>
+                    <img src='assets/img/phong/phong-0-ambient.png'/>
+                  </td>
+                  <td class='fragment' width="25%" data-index=8>
+                    <img src='assets/img/phong/phong-1-diffuse.png'/>
+                  </td>
+                  <td class='fragment' width="25%" data-index=9>
+                    <img src='assets/img/phong/phong-2-specular.png'/>
+                  </td>
+                  <td class='fragment' width="25%" data-index=10>
+                    <img src='assets/img/phong/phong-3-combined.png'/>
+                  </td>
+                </tr>
+                <tr>
+                  <td class='fragment' data-index=7> ambient </td>
+                  <td class='fragment' data-index=8> + diffus </td>
+                  <td class='fragment' data-index=9> + glänzend </td>
+                  <td class='fragment' data-index=10> = Phong </td>
+                </tr>
+              </table>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #6 Licht
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ambiente Beleuchtung
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> konstante Lichtstärke überall in der Szene </li>
+                <li class='fragment'> unabhängig von allen Lichtquellen </li>
+                <li class='fragment'> billige Imitation globaler Beleuchtung, sieht aber gut aus </li>
+                <li class='fragment'> konstanter Faktor&nbsp; $k_\text{ambient}$, bei uns: materialunabhängig </li>
+                <li class='fragment'> ($C_\text{material}$: Materialfarbe)
+                $$I_\text{ambient} = k_\text{ambient} \cdot C_\text{material}$$ </li>
+              </ul>
+            </div>
+            <div class='gi'
+                 style='grid-area: 11 / 1 / 20 / 11; text-align: center;'>
+              <table width="100%" style="margin-top: 20px;">
+                <tr>
+                  <td width="25%" style='background-color: #ff0;'>
+                    <img src='assets/img/phong/phong-0-ambient.png'/>
+                  </td>
+                  <td width="25%">
+                    <img src='assets/img/phong/phong-1-diffuse.png'/>
+                  </td>
+                  <td width="25%">
+                    <img src='assets/img/phong/phong-2-specular.png'/>
+                  </td>
+                  <td width="25%">
+                    <img src='assets/img/phong/phong-3-combined.png'/>
+                  </td>
+                </tr>
+                <tr>
+                  <td style='background-color: #ff0;'> ambient </td>
+                  <td> + diffus </td>
+                  <td> + glänzend </td>
+                  <td> = Phong </td>
+                </tr>
+              </table>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #6 Licht
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Diffuse Beleuchtung
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> abhängig von Richtung Oberfläche → Lichtquelle </li>
+                <li class='fragment'> → lokaler Normalenvektor </li>
+                <li class='fragment'> Maximum: Oberfläche senkrecht zum Licht → Objektfarbe </li>
+                <li class='fragment'> Minimum: Oberfläche parallel zum Licht → schwarz/nichts </li>
+                <li class='fragment'> perfektes Lambertsches Material 
+                $$I_\text{diffus} = f_\text{diffus} \cdot k_\text{diffus,material} \cdot C_\text{material}$$ </li>
+              </ul>
+            </div>
+            <div class='gi'
+                 style='grid-area: 11 / 1 / 20 / 11; text-align: center;'>
+              <table width="100%" style="margin-top: 20px;">
+                <tr>
+                  <td width="25%">
+                    <img src='assets/img/phong/phong-0-ambient.png'/>
+                  </td>
+                  <td width="25%" style='background-color: #ff0;'>
+                    <img src='assets/img/phong/phong-1-diffuse.png'/>
+                  </td>
+                  <td width="25%">
+                    <img src='assets/img/phong/phong-2-specular.png'/>
+                  </td>
+                  <td width="25%">
+                    <img src='assets/img/phong/phong-3-combined.png'/>
+                  </td>
+                </tr>
+                <tr>
+                  <td> ambient </td>
+                  <td style='background-color: #ff0;'> + diffus </td>
+                  <td> + glänzend </td>
+                  <td> = Phong </td>
+                </tr>
+              </table>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #6 Licht
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Diffuse Beleuchtung
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> Lichtfaktor abhängig von Ausrichtung der Oberfläche </li>
+                <li class='fragment'> $\mathbf{L} := $ Vektor vom Oberflächenpunkt zum Licht
+                $$f_\text{diffus} = \mathbf{n} \cdot \mathbf{L}$$ </li>
+                <li class='fragment'> nicht $\leq 0$ ! </li>
+                <li class='fragment'> (nicht dem Licht zugewandte Punkte sind nicht beleuchtet) </li>
+                <li class='fragment'> → <u>keine</u> Abhängigkeit von der Blickrichtung! </li>
+              </ul>
+            </div>
+            <div class='gi'
+                 style='grid-area: 11 / 1 / 19 / 6; text-align: center;'>
+              <img src='assets/img/phong/phong-1-diffuse.png'/>
+            </div>
+            <div class='gi fragment current-visible' data-index=2
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/diffuse/diffuse0.png'>
+            </div>
+            <div class='gi fragment current-visible' data-index=3
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/diffuse/diffuse1.png'>
+            </div>
+            <div class='gi fragment current-visible' data-index=4
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/diffuse/diffuse2.png'>
+            </div>
+            <div class='gi fragment current-visible' data-index=5
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/diffuse/diffuse3.png'>
+            </div>
+            <div class='gi fragment' data-index=6
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/diffuse/diffuse4.png'>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/diffuse/diffuse5.png'>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/diffuse/diffuse6.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/diffuse/diffuse7.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #6 Licht
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Glänzende Beleuchtung
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> abhängig von Richtung Oberfläche → Lichtquelle <br> 
+                      und Kamera → Oberfläche </li>
+                <li class='fragment'> "Größe" des Glanzlichtes kann Materialeigenschaft sein </li>
+                <li class='fragment'> → "hardness"/"shininess" </li>
+                <li class='fragment'> Lichtfarbe statt Materialfarbe
+                $$I_\text{glanz} =  f_\text{glanz} \cdot k_\text{glanz,material} \cdot C_\text{licht}$$ </li>
+              </ul>
+            </div>
+            <div class='gi'
+                 style='grid-area: 11 / 1 / 20 / 11; text-align: center;'>
+              <table width="100%" style="margin-top: 20px;">
+                <tr>
+                  <td width="25%">
+                    <img src='assets/img/phong/phong-0-ambient.png'/>
+                  </td>
+                  <td width="25%">
+                    <img src='assets/img/phong/phong-1-diffuse.png'/>
+                  </td>
+                  <td width="25%" style='background-color: #ff0;'>
+                    <img src='assets/img/phong/phong-2-specular.png'/>
+                  </td>
+                  <td width="25%">
+                    <img src='assets/img/phong/phong-3-combined.png'/>
+                  </td>
+                </tr>
+                <tr>
+                  <td> ambient </td>
+                  <td> + diffus </td>
+                  <td style='background-color: #ff0;'> + glänzend </td>
+                  <td> = Phong </td>
+                </tr>
+              </table>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #6 Licht
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Glänzende Beleuchtung
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> Glanzlicht = Lichtquelle spiegelt sich im Objekt </li>
+                <li class='fragment'> Maximum = "Oberfläche → Licht = ausgehender Strahl" </li>
+                <li class='fragment'> "harder"/"shinier" Material → Glanzlicht ist fokussierter <br><br>
+                $$f_\text{glanz} = \left(\mathbf{L}\cdot\mathbf{R}\right)^\text{hardness}$$ </li>
+              </ul>
+            </div>
+            <div class='gi'
+                 style='grid-area: 11 / 1 / 19 / 6; text-align: center;'>
+              <img src='assets/img/phong/phong-2-specular-hard25.png'/>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 11 / 1 / 19 / 6; text-align: center;'>
+              <img src='assets/img/phong/phong-2-specular.png'/>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 11 / 1 / 19 / 6; text-align: center;'>
+              <img src='assets/img/phong/phong-2-specular-hard100.png'/>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/diffuse/diffuse5.png'>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/diffuse/diffuse6.png'>
+            </div>
+            <div class='gi fragment current-visible'
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/diffuse/diffuse7.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #6 Licht
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Komplette Beleuchtung
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <span class='fragment'> $$ I = I_\text{ambient} + I_\text{diffus} + I_\text{glanz} $$ </span>
+              <span class='fragment'> $$ I = \left( k_\text{ambient} + f_\text{diffus} \right) \cdot k_\text{diffus,material} \cdot C_\text{material} + \\
+                f_\text{glanz} \cdot k_\text{glanz,material} \cdot C_\text{Licht} $$ </span>
+              <span class='fragment'> $$ I = \left( k_\text{ambient} + \mathbf{n}\cdot\mathbf{L} \right) \cdot k_\text{diffus,material} \cdot C_\text{material} + \\
+                \left( \mathbf{L}\cdot\mathbf{R} \right)^\text{hardness} \cdot k_\text{glanz,material} \cdot C_\text{Licht} $$ </span>
+            </div>
+            <div class='gi'
+                 style='grid-area: 11 / 1 / 20 / 11; text-align: center;'>
+              <table width="100%" style="margin-top: 20px;">
+                <tr>
+                  <td width="25%">
+                    <img src='assets/img/phong/phong-0-ambient.png'/>
+                  </td>
+                  <td width="25%">
+                    <img src='assets/img/phong/phong-1-diffuse.png'/>
+                  </td>
+                  <td width="25%">
+                    <img src='assets/img/phong/phong-2-specular.png'/>
+                  </td>
+                  <td width="25%">
+                    <img src='assets/img/phong/phong-3-combined.png'/>
+                  </td>
+                </tr>
+                <tr>
+                  <td> ambient </td>
+                  <td> + diffus </td>
+                  <td> + glänzend </td>
+                  <td> = Phong </td>
+                </tr>
+              </table>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #6 Licht
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'>Beleuchtung</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #6 Licht
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-5.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-6a.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #6 Licht
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> $\mathbf{L}$: Oberfläche → Licht </li>
+                <li> $\mathbf{R}$: Oberfläche → ... </li>
+                <li> $\mathbf{n}$: Oberfläche → ... </li>
+                <li> $0 \leq f_\text{diffus}, f_\text{glanz} \leq 1$ </li>
+                <li> → Einheitslänge </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div style="width: 100%; text-align: center;">
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class='multilineheader'><span class='ml-highlight'>
+              Level 7 — Schatten
+            </span></h1>
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #7 Schatten
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Schatten
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> wir haben <i>Schattierung</i>, aber keine <i>Schatten</i> </li>
+                <li class='fragment'> was liegt im Schatten? </li>
+                  <ul>
+                    <li class='fragment'> was nicht im Licht liegt </li>
+                    <li class='fragment'> = Punkte, die das Licht nicht direkt "sehen" </li>
+                    <li class='fragment'> = Punkte, zwischen denen und dem Licht ein Objekt ist </li>
+                    <li class='fragment'> → Raytracing + Schnitttests! </li>
+                  </ul>
+                <li class='fragment'> → haben wir alles schon! \Ü/ </li>
+                <li class='fragment'> auch im Schatten: <br> 
+                     ambientes Licht! </li>
+              </ul>
+            </div>
+            <div class='gi fragment' data-index=6
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/shadow/shadow0.png'>
+            </div>
+            <div class='gi fragment' data-index=7
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/shadow/shadow1.png'>
+            </div>
+            <div class='gi fragment' data-index=8
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/shadow/shadow2.png'>
+            </div>
+            <div class='gi fragment' data-index=9
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/shadow/shadow3.png'>
+            </div>
+            <div class='gi fragment' data-index=10
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/shadow/shadow4.png'>
+            </div>
+            <div class='gi fragment' data-index=11
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/shadow/shadow5.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #7 Schatten
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'>Schatten</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #7 Schatten
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-6a.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-6.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #7 Schatten
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> (siehe #6 Licht) </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div style="width: 100%; text-align: center;">
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class='multilineheader'><span class='ml-highlight'>
+              Level 8 — Allerhand Zufälliges
+            </span></h1>
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> Anti-Aliasing </li>
+                <li class='fragment'> Matte Oberflächen </li>
+                <li class='fragment'> Weiche Schatten </li>
+                <li class='fragment'> Tiefenschärfe </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Aliasing
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> Sensorgitter: Auflösung&nbsp; $X$ </li>
+                <li class='fragment'> echte Welt: Auflösung&nbsp; $\infty$ </li>
+                <li class='fragment'> Aufnahme = Diskretisierung </li>
+                <li class='fragment'> ein Messpunkt = ein Wert </li>
+                <li class='fragment'> ein Strahl → Aliasing </li>
+              </ul>
+            </div>
+            <div class='gi gi-right fragment' data-index=2>
+              <img src='assets/img/antialiasing/aa0.png'>
+            </div>
+            <div class='gi gi-right fragment' data-index=4>
+              <img src='assets/img/antialiasing/aa1.png'>
+            </div>
+            <div class='gi gi-right fragment' data-index=7>
+              <img src='assets/img/antialiasing/aa2.png'>
+            </div>
+            <div class='gi gi-right fragment' data-index=9>
+              <img src='assets/img/antialiasing/aa3.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Anti-Aliasing
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> ein Messpunkt = ein Wert </li>
+                <li class='fragment'> → viele Messpunkte </li>
+                <li class='fragment'> → Durchschnitt </li>
+              </ul>
+            </div>
+            <div class='gi gi-right'>
+              <img src='assets/img/antialiasing/aa2.png'>
+            </div>
+            <div class='gi gi-right fragment' data-index=3>
+              <img src='assets/img/antialiasing/aa4.png'>
+            </div>
+            <div class='gi gi-right fragment' data-index=5>
+              <img src='assets/img/antialiasing/aa6.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'> Anti-Aliasing </span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all fragment current-visible'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-6.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment current-visible'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-7a.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+            <div class='gi gi-all fragment current-visible'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='550px' src='assets/img/levels/level-6-crop.png'>
+                <img width='550px' src='assets/img/levels/level-7a-crop.png'><br><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> zufälliges Offset&nbsp; $\in [-0.5, 0.5]^2$ </li>
+                <li> (eigentlich müsste eine Grenze exklusiv sein) </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Oberflächenbeschaffenheit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> bisher: </li>
+              </ul>
+            </div>
+            <div class='gi'
+                 style='grid-area: 3 / 2 / 21 / 8'>
+              <div style='width: 100%; text-align: center;'>
+                <img class='fragment' height='320px' data-index=1
+                     src='assets/img/rough/surface-1-mirror.png'/><br>
+                  <span class='fragment' data-index=1> perfekte Reflexion </span>
+                <img class='fragment' height='320px'  data-index=3
+                     src='assets/img/rough/surface-0-absorbing.png'/><br>
+                  <span class='fragment' data-index=3> keine Reflexion </span>
+              </div>
+            </div>
+            <div class='gi'
+                 style='grid-area: 3 / 8 / 21 / 11'>
+              <div style='width: 100%; text-align: center;'>
+                <img class='fragment' height='320px'  data-index=2
+                     src='assets/img/levels/level-7a-crop-mirrorsphere.png'/><br>
+                <span class='fragment' data-index=2> spiegelnd </span><br>
+                <img class='fragment' height='320px'  data-index=4
+                     src='assets/img/levels/level-7a-crop-floor.png'/><br>
+                <span class='fragment' data-index=4> absorbierend </span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              matte Oberflächen
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> <i>matte</i> Objekte spiegeln, aber nicht "sauber" </li>
+                <li class='fragment'> (Beispiel: poliertes vs sandgestrahltes Metall) </li>
+                <li class='fragment'> matte Oberflächen sind <i>raue</i> Oberflächen </li>
+                <li class='fragment'> raue Oberflächen haben zufällige Normalen </li>
+                <li class='fragment'> Stärke der Zufälligkeit = Rauheit, <i>roughness</i> </li>
+                <li class='fragment'> Simulation: Addiere zufälligen Vektor zur perfekten Reflexion </li>
+              </ul>
+            </div>
+
+            <div class='gi fragment' data-index=4
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rough/surface-0-absorbing.png'>
+            </div>
+            <div class='gi fragment' data-index=5
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rough/surface-2-rough-0-0.png'>
+            </div>
+            <div class='gi fragment' data-index=7
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rough/surface-2-rough-0-1.png'>
+            </div>
+            <div class='gi fragment' data-index=8
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rough/surface-2-rough-0-2.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rough/surface-2-rough-0-3.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rough/surface-2-rough-0-4.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rough/surface-2-rough-0-2.png'>
+            </div>
+
+            <div class='gi fragment' data-index=10
+                 style='grid-area: 11 / 1 / 20 / 6; text-align: center;'>
+              <img src='assets/img/rough/surface-2-rough-1-0.png'>
+            </div>
+            <div class='gi fragment' data-index=11
+                 style='grid-area: 11 / 1 / 20 / 6; text-align: center;'>
+              <img src='assets/img/rough/surface-2-rough-1-1.png'>
+            </div>
+            <div class='gi fragment' data-index=12
+                 style='grid-area: 11 / 1 / 20 / 6; text-align: center;'>
+              <img src='assets/img/rough/surface-2-rough-1-2.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 11 / 1 / 20 / 6; text-align: center;'>
+              <img src='assets/img/rough/surface-3.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Implementierung
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> wieso keine Zufallsaddition zum <i>Normalenvektor</i>? </li>
+                  <ul>
+                    <li class='fragment'> wäre eleganter, war aber insgesamt mehr Arbeit </li>
+                  </ul>
+                <li class='fragment'> unmögliche Reflexionen abfangen! 
+                $$\mathbf{n}\cdot\mathbf{R} < 1 \Rightarrow \mathbf{R'} := \mathbf{R} + \mathbf{n}\cdot 2 \cdot\left(\mathbf{n}\cdot-\mathbf{R}\right)$$ </li> 
+                <li class='fragment'> (selbe Reflexionsformel wie in "#3 Raytracing") </li>
+                <li class='fragment'> nach der Änderung: Normale neu berechnen! 
+                     $$\mathbf{n'} := \mathbf{R'}-\mathbf{V}$$ </li> 
+              </ul>
+            </div>
+
+            <div class='gi fragment' data-index=3
+                 style='grid-area: 12 / 1 / 20 / 6; text-align: center;'>
+              <img src='assets/img/rough/reflection-flip-0.png'>
+            </div>
+            <div class='gi fragment' data-index=5
+                 style='grid-area: 12 / 1 / 20 / 6; text-align: center;'>
+              <img src='assets/img/rough/reflection-flip-1.png'>
+            </div>
+
+            <div class='gi fragment'
+                 style='grid-area: 12 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rough/renormal-0.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 12 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rough/renormal-1.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 12 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rough/renormal-2.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'> matte Oberflächen </span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-7a.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-7b.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Reflexion, Normale, Zufallsvektor → Einheitslänge </li>
+                <li> $\mathbf{R}\cdot\mathbf{n} \leq 0$ → ungültige Reflexion → Flip </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ideen-Ecke
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> matte Oberflächen </li>
+                  <ul>
+                    <li class='fragment'> bessere Modelle: z.B. <i>Microfacets</i> </li>
+                    <li class='fragment'> an-isotrope Rauheit: gebürstetes Metall ("Topfboden") </li>
+                    <li class='fragment'> <i>Normal mapping</i>: Normale mit Spezialtextur ändern </li>
+                  </ul>
+              </ul>
+            </div>
+
+            <div class='gi fragment'
+                 style='grid-area: 8 / 1 / 19 / 11; text-align: center;'>
+              <img src='assets/img/spheres-materials-anisotropy.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Weiche Schatten
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> nur harte Schatten sind langweilig </li>
+                <li class='fragment'> woher kommen weiche Schatten?
+                  <ul>
+                    <li class='fragment'> atmosphärische Streuung (→ Volumen-Raytracing...) </li>
+                    <li class='fragment'> Flächen-Lichtquellen </li>
+                  </ul>
+                </li>
+                <li class='fragment'> → Lichtquelle mit Zufallsposition </li>
+                <li class='fragment'> → wir haben schon alles dafür \Ü/ </li>
+              </ul>
+            </div>
+
+            <div class='gi fragment' data-index=5
+                 style='grid-area: 11 / 1 / 20 / 6; text-align: center;'>
+              <img src='assets/img/soft-shadows/soft-0.png'>
+            </div>
+            <div class='gi fragment' data-index=6
+                 style='grid-area: 11 / 1 / 20 / 6; text-align: center;'>
+              <img src='assets/img/soft-shadows/soft-1.png'>
+            </div>
+            <div class='gi fragment' data-index=7
+                 style='grid-area: 11 / 1 / 20 / 6; text-align: center;'>
+              <img src='assets/img/soft-shadows/soft-2.png'>
+            </div>
+            <div class='gi fragment' data-index=8
+                 style='grid-area: 11 / 1 / 20 / 6; text-align: center;'>
+              <img src='assets/img/soft-shadows/soft-3.png'>
+            </div>
+
+            <div class='gi fragment' data-index=9
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/soft-shadows/soft-4.png'>
+            </div>
+            <div class='gi fragment' data-index=10
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/soft-shadows/soft-5.png'>
+            </div>
+            <div class='gi fragment' data-index=11
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/soft-shadows/soft-6.png'>
+            </div>
+            <div class='gi fragment' data-index=12
+                 style='grid-area: 11 / 6 / 20 / 11; text-align: center;'>
+              <img src='assets/img/soft-shadows/soft-7.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'> weiche Schatten </span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-7b.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-7c.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> in welchen Dimensionen ist die Lichtquelle ausgedehnt? </li>
+                <li> verrauschte Schatten? → mehr Samples </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Tiefenschärfe
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> bisher: immer alles perfekt im Fokus (Lochkamera) </li>
+                <li class='fragment'> → unrealistisch und langweilig </li>
+                <li class='fragment'> echte Kameras: Unschärfe durch Blendenöffnung </li>
+              </ul>
+            </div>
+
+            <div class='gi'
+                 style='grid-area: 8 / 1 / 21 / 11; text-align: center;'>
+              <div style='width: 100%; text-align: center;'>
+                <img class='fragment' height='500px' data-index=2
+                     src='assets/img/spheres-materials-focus.png'>
+                <img class='fragment' height='500px' data-index=5
+                     src='assets/img/spheres-materials-defocus.png'>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Tiefenschärfe
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> wir haben kein Objektiv und keine "Blende" </li>
+                <li class='fragment'> → Simulation durch "Sensorverschiebung" </li>
+                <li class='fragment'> geometrische Konstruktion </li>
+                <li class='fragment' data-index=14> Fokaldistanz&nbsp; $f$, Kameraverschiebungsvektor&nbsp; $\mathbf{s}$<br>
+                $\Rightarrow$ &nbsp;Strahlverschiebungsvektor&nbsp; $= \frac{1}{d}\cdot \left(-\mathbf{s}\right)$ </li>
+              </ul>
+            </div>
+
+            <div class='gi fragment'
+                 style='grid-area: 10 / 1 / 21 / 11; text-align: center;'>
+              <img height='450px' src='assets/img/defocus/defocus-0.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 10 / 1 / 21 / 11; text-align: center;'>
+              <img height='450px' src='assets/img/defocus/defocus-1.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 10 / 1 / 21 / 11; text-align: center;'>
+              <img height='450px' src='assets/img/defocus/defocus-2.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 10 / 1 / 21 / 11; text-align: center;'>
+              <img height='450px' src='assets/img/defocus/defocus-3.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 10 / 1 / 21 / 11; text-align: center;'>
+              <img height='450px' src='assets/img/defocus/defocus-4.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 10 / 1 / 21 / 11; text-align: center;'>
+              <img height='450px' src='assets/img/defocus/defocus-5.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 10 / 1 / 21 / 11; text-align: center;'>
+              <img height='450px' src='assets/img/defocus/defocus-6.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 10 / 1 / 21 / 11; text-align: center;'>
+              <img height='450px' src='assets/img/defocus/defocus-7.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 10 / 1 / 21 / 11; text-align: center;'>
+              <img height='450px' src='assets/img/defocus/defocus-7a.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 10 / 1 / 21 / 11; text-align: center;'>
+              <img height='450px' src='assets/img/defocus/defocus-8.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 10 / 1 / 21 / 11; text-align: center;'>
+              <img height='450px' src='assets/img/defocus/defocus-9.png'>
+            </div>
+            <div class='gi fragment'
+                 style='grid-area: 10 / 1 / 21 / 11; text-align: center;'>
+              <img height='450px' src='assets/img/defocus/defocus-10.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Tiefenschärfe
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> Punkte mit Distanz&nbsp; $d$ &nbsp; (hier: $4$) werden scharf abgebildet </li>
+                <li class='fragment'> (Strahlen aus verschobenen Kameras → selber Punkt) </li>
+                <li class='fragment'> nähere oder entferntere Punkte sind unscharf </li>
+                <li class='fragment'> (verschobene Kameras treffen <i>andere</i> Punkte) </li>
+                <li class='fragment'> → Tiefenschärfe </li>
+              </ul>
+            </div>
+
+            <div class='gi'
+                 style='grid-area: 10 / 1 / 21 / 11; text-align: center;'>
+              <img height='450px' src='assets/img/defocus/defocus-10.png'>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'> Tiefenschärfe </span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-7c.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-7d.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Fokaldistanz&nbsp; $f$, Kameraverschiebungsvektor&nbsp; $\mathbf{s}$<br>
+                $\Rightarrow$ &nbsp;Strahlverschiebungsvektor&nbsp; $= \frac{1}{d}\cdot \left(-\mathbf{s}\right)$ </li>
+                <li> Kameraverschiebung entlang Sensorachsen (hier: X, Y) </li>
+                <li> Strahlnormalisierung nach Verschiebung </li>
+                <li> (Strahlen müssen <i>immer</i> Einheitslänge haben!) </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #8 Zufälliges
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ideen-Ecke
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Anti-Aliasing </li>
+                <li> Matte Oberflächen </li>
+                <li> Weiche Schatten </li>
+                <li> Tiefenschärfe </li>
+                <li class='fragment'> mehr:
+                  <ul>
+                    <li class='fragment'> Bewegungsunschärfe (<i>motion blur</i>) </li> 
+                    <li class='fragment'> → zufällige Objekt- oder Kameraposition </li> 
+                    <li class='fragment'> Zoom-Unschärfe </li> 
+                    <li class='fragment'> → zufällige&nbsp; <code>RIGHT</code>/<code>UP</code>-Vektoren </li> 
+                    <li class='fragment'> billig berechnete transparente Objekte </li> 
+                    <li class='fragment'> → zufälliger Schnitttest </li> 
+                    <li class='fragment'> Blendenformen (Bokeh) </li> 
+                    <li class='fragment'> Tilt-Shift! ("Scheimpflugsche Regel") </li>
+                  </ul>
+                </li>
+              </ul>
+            </div>
+
+            <div class='gi fragment'
+                 style='grid-area: 7 / 8 / 21 / 11; text-align: center;'>
+                 <img src='assets/img/external/bokeh__studio_incendo__flickr.jpg'/><br>
+                 <span><small>© Studio Incanto via Flickr</small></span>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div style="width: 100%; text-align: center;">
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class='multilineheader'><span class='ml-highlight'>
+              Level 9 — Texturen
+            </span></h1>
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #9 Texturen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Konzept
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> einfarbige Objekte sind langweilig </li>
+                <li class='fragment'> prozedurale Texturen (Schachbrett) auch </li>
+                <li class='fragment'> → <i>Texturen</i> </li>
+                  <ul>
+                    <li class='fragment'> wie "Tapeten", "Geschenkpapier" </li>
+                    <li class='fragment'> Bild → Objektfarbe </li>
+                    <li class='fragment'> welcher Bildpixel → welcher 3D-Punkt? </li>
+                    <li class='fragment'> → wir brauchen ein <i>Mapping</i> </li>
+                  </ul>
+              </ul>
+            </div>
+
+            <div class='gi' style='grid-area: 3 / 8 / 21 / 11;'>
+              <div style='width: 100%; text-align: center;'>
+                <img class='fragment' data-index=2 
+                     src='assets/img/textures/tex-0.png'/><br>
+                <img class='fragment' data-index=6
+                     src='assets/img/textures/tex-1.png'/><br>
+              </div>
+            </div>
+            <div class='gi fragment' style='grid-area: 12 / 5 / 21 / 8;' data-index=5>
+              <div style='width: 100%; text-align: center;'>
+                <img src='assets/img/textures/texture.png'/><br>
+                Bildtextur
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #9 Texturen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Textur
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <br>
+              <br>
+              Download hier:<br> 
+              <br>
+              <br>
+              lmb.informatik.uni-freiburg.de/people/mayern/o/texture.ppm
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #9 Texturen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              PPM-Bilder lesen
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <code class='fragment'>$ vim texture.ppm</code>
+              <pre class='language-cpp fragment'><code class='language-cpp'>P6
+600 400
+255
+f± jÕËyÙÕ<99>äßI<93><8e> [...]</code></pre>
+              
+              <ul>
+                <li class='fragment'> <code>P6</code> → Binär-PPM (1 Byte pro Farbkanal, 3 Bytes pro Pixel) </li>
+                <li class='fragment'> <code>600 400</code> → Auflösung 600x400 </li>
+                <li class='fragment'> Headergröße: "<code>P6 600 400 255 </code>" → <b>15</b> Bytes </li>
+                <li class='fragment'> Datengröße: 600 · 400 · 3 = 720000 Bytes </li>
+                <li class='fragment'> erwartete Dateigröße: 15 + 720000 = 720015 Bytes </li>
+                <li class='fragment'> <code>$ du -b texture.ppm</code>: <b>720016</b> Bytes! </li>
+                <li class='fragment'> warum der Unterschied? </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #9 Texturen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Intermezzo: Binärdateien lesen
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <code class='fragment'>$ xxd texture.ppm | head -n3</code>
+              <pre class='language-cpp fragment'><code class='language-cpp' style='font-size: 28px;'>0000000: 5036 0a36 3030 2034 3030 0a32 3535 0a66  P6.600 400.255.f
+0000010: b1a0 6ad5 cb79 d9d5 99e4 df49 938e 75d7  ..j..y.....I..u.
+0000020: d36d d2cc 85db d697 e2dd 6dd4 cc55 c9bf  .m........m..U..</code></pre>
+              
+              <ul>
+                <li class='fragment'> <code>0a</code> ist ein Zeilenumbruch </li>
+                <li class='fragment'> <code>20</code> ist ein Leerzeichen </li>
+              </ul>
+              <br>
+              <br>
+
+              <code class='fragment'>$ xxd texture.ppm | tail -n3</code>
+              <pre class='language-cpp fragment'><code class='language-cpp' style='font-size: 28px;'>00afc60: bfad 20cc bb11 b1a0 03b3 9d02 a991 0452  .. ............R
+00afc70: 430a 0a09 212e 2818 9c88 16af a241 cac2  C...!.(......A..
+00afc80: 3cd3 cb33 d3cd 3fd5 d016 d1ca 30d4 ce0a  <..3..?.....0...</code></pre>
+              
+              <ul>
+                <li class='fragment'> überflüssiger Zeilenumbruch am Ende... </li>
+                <li class='fragment'> → können wir ignorieren \Ü/ </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #9 Texturen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              PPM-Bilder lesen
+            </span></h2>
+
+            <div class='gi gi-all'>
+              in <code>get_ground_color(..)</code>:
+              <pre class='language-cpp'><code class='language-cpp' style='font-size: 30px;'>static unsigned char* texture_data{nullptr};
+const int tex_w{600};
+const int tex_h{400};
+if (not texture_data) {
+  std::ifstream texture("texture.ppm");
+  texture_data = new unsigned char[tex_w*tex_h*3];
+  texture.read(reinterpret_cast<char*>(texture_data), 15);  /* dummy read */
+  texture.read(reinterpret_cast<char*>(texture_data), tex_w*tex_h*3);
+}</code></pre>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #9 Texturen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'>Bodentextur</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #9 Texturen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-7d.png'>
+              </div>
+            </div>
+            <div class='gi gi-all fragment'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-8.png'><br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #9 Texturen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Bodenkoordinaten in der XZ-Ebene </li>
+                <li> X = rechts, Z = "nach vorne"</li>
+                <li> (X,Z) hochskalieren für Texturkoordinaten </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #9 Texturen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ideen-Ecke
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Texturen für: </li>
+                  <ul>
+                    <li> Farbe &checkmark; </li>
+                    <li> Normalenrichtung </li>
+                    <li> $k_\text{diffus,material}$, $k_\text{glanz,material}$ </li>
+                    <li> Rauheit </li>
+                    <li> Transparenz </li>
+                  </ul>
+              </ul>
+            </div>
+
+            <div class='gi'
+                 style='grid-area: 3 / 8 / 11 / 11; text-align: center;'>
+              <img src='assets/img/external/texture-haven/render.jpg'/><br>
+              <small>texturehaven.com</small>
+            </div>
+            <div class='gi'
+                 style='grid-area: 11 / 1 / 20 / 11; text-align: center;'>
+              <table width="100%" style="margin-top: 20px;">
+                <tr>
+                  <td width="25%">
+                    <img src='assets/img/external/texture-haven/diffuse.jpg'/><br>
+                  </td>
+                  <td width="25%">
+                    <img src='assets/img/external/texture-haven/specular.jpg'/><br>
+                  </td>
+                  <td width="25%">
+                    <img src='assets/img/external/texture-haven/normal.jpg'/><br>
+                  </td>
+                  <td width="25%">
+                    <img src='assets/img/external/texture-haven/rough.jpg'/><br>
+                  </td>
+                </tr>
+                <tr>
+                  <td> diffuse Farbe </td>
+                  <td> Glanz </td>
+                  <td> Normale </td>
+                  <td> Rauheit </td>
+                </tr>
+              </table>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div style="width: 100%; text-align: center;">
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class='multilineheader'><span class='ml-highlight'>
+              BONUS LEVEL UNLOCKED
+            </span></h1>
+          </div>
+        </section>
+
+
+        <section>
+          <div style="width: 100%; text-align: center;">
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class='multilineheader'><span class='ml-highlight'>
+              Level &Omega; — Rotationsmatrizen
+            </span></h1>
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #&Omega; Rotationsmatrizen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Wait, what?
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li class='fragment'> bisher können wir Objekte und Kamera nur <i>verschieben</i> </li>
+                <li class='fragment'> Rotationen (=Drehungen) sind schwieriger </li>
+                <li class='fragment'> Herleitungsbeispiel in 2D:</li>
+                <br>
+                <li class='fragment'> Vektor &nbsp;$(x,y)$ </li>
+                <li class='fragment'> Einheitslänge </li>
+                <li class='fragment'> Drehung um &nbsp;$\alpha$ </li>
+              </ul>
+            </div>
+
+            <div class='gi fragment current-visible' 
+                 style='grid-area: 7 / 5 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rotation/rot-0.png'/>
+            </div>
+            <div class='gi fragment current-visible' 
+                 style='grid-area: 7 / 5 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rotation/rot-1.png'/>
+            </div>
+            <div class='gi fragment current-visible' 
+                 style='grid-area: 7 / 5 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rotation/rot-2.png'/>
+            </div>
+            <div class='gi fragment current-visible' 
+                 style='grid-area: 7 / 5 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rotation/rot-3.png'/>
+            </div>
+            <div class='gi fragment current-visible' 
+                 style='grid-area: 7 / 5 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rotation/rot-4.png'/>
+            </div>
+            <div class='gi fragment current-visible' 
+                 style='grid-area: 7 / 5 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rotation/rot-5.png'/>
+            </div>
+            <div class='gi fragment current-visible' 
+                 style='grid-area: 7 / 5 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rotation/rot-6.png'/>
+            </div>
+            <div class='gi fragment' 
+                 style='grid-area: 7 / 5 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rotation/rot-7.png'/>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #&Omega; Rotationsmatrizen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Rotation in 2D
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Basisvektoren:
+                $$ \begin{pmatrix} 1 \\ 0 \end{pmatrix} \rightarrow 
+                \begin{pmatrix} \text{cos}(\alpha) \\ -\text{sin}(\alpha) \end{pmatrix}, 
+                \begin{pmatrix} 0 \\ 1 \end{pmatrix} \rightarrow 
+                \begin{pmatrix} \text{sin}(\alpha) \\ \text{cos}(\alpha) \end{pmatrix} $$
+                </li>
+              </ul>
+            </div>
+
+            <div class='gi' 
+                 style='grid-area: 7 / 5 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rotation/rot-7.png'/>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #&Omega; Rotationsmatrizen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Rotation in 2D
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Rotation:
+                $$\begin{pmatrix} x'\\y' \end{pmatrix} = 
+                  \begin{pmatrix} \text{cos}(\alpha) & -\text{sin}(\alpha) \\
+                                  \text{sin}(\alpha) &  \text{cos}(\alpha) \end{pmatrix} \cdot
+                  \begin{pmatrix} x\\y \end{pmatrix}$$
+                </li>
+              </ul>
+            </div>
+
+            <div class='gi' 
+                 style='grid-area: 7 / 5 / 20 / 11; text-align: center;'>
+              <img src='assets/img/rotation/rot-7.png'/>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #&Omega; Rotationsmatrizen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Rotation in 3D
+            </span></h2>
+            <!--<h2 class='multilineheader' 
+                style='grid-area: 1 / 4 / 3 / 11; 
+                       justify-self: end; 
+                       margin-right: -60px;'>
+              <span style='display: inline;
+                           background: #337eff;
+                           color: #fff;
+                           padding: 0;
+                           box-decoration-break: clone;
+                           box-shadow:  0em  .1em 0 #337eff,
+                                        0em -.1em 0 #337eff,
+                                       -.2em  .1em 0 #337eff,
+                                       -.2em -.1em 0 #337eff;'>
+                Seriously what the fu
+              </span>
+              <span style='display: inline;
+                           background: #fff;
+                           color: #fff;
+                           margin-left: -8px;
+                           box-decoration-break: clone;
+                           box-shadow:  0em  .15em 0 #fff,
+                                        0em -.15em 0 #fff,
+                                       -.2em  .15em 0 #fff,
+                                       -.2em -.15em 0 #fff;'>
+                x
+              </span></h2>-->
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> in 3D: Drehung um Z-Achse:<br><br>
+                $$\begin{pmatrix} x'\\y'\\z' \end{pmatrix} = 
+                  \begin{pmatrix} \text{cos}(\alpha) & -\text{sin}(\alpha) & 0 \\
+                                  \text{sin}(\alpha) &  \text{cos}(\alpha) & 0 \\
+                                  0 & 0 & 1 \end{pmatrix} \cdot
+                  \begin{pmatrix} x\\y\\z \end{pmatrix}$$<br>
+                </li>
+                <li> X, Y (Vorzeichen folgen aus unserem Koordinatensystem):<br><br>
+                $$\begin{pmatrix} 1 & 0 & 0 \\
+                                  0 & \text{cos}(\alpha) & -\text{sin}(\alpha) \\
+                                  0 & \text{sin}(\alpha) &  \text{cos}(\alpha) \end{pmatrix},
+                  \begin{pmatrix} \text{cos}(\alpha) & 0 & \text{sin}(\alpha) \\
+                                  0 & 1 & 0 \\
+                                  -\text{sin}(\alpha) & 0 & \text{cos}(\alpha) \end{pmatrix}$$
+                </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #&Omega; Rotationsmatrizen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'> Rotationsmatrizen </span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #&Omega; Rotationsmatrizen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <video data-autoplay loop controls style='width: 50%;'>
+                  <source src='assets/video/final.ogv' type='video/ogg'>
+                </video>
+                <br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              #&Omega; Rotationsmatrizen
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Rotationsreihenfolge Z-Y-X == Matrizen X·Y·Z·Punkt </li>
+                <li> Euler-Winkel → <i>Gimbal lock</i> in kritischen Konfigurationen </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <div class='gi' style='grid-area: 1 / 1 / 21 / 11;'>
+              <table>
+                <tr>
+                  <td>
+                    <img width='300px' src='assets/img/levels/level-0.png'/>
+                  </td>
+                  <td>
+                    <img width='300px' src='assets/img/levels/level-1b.png'/>
+                  </td>
+                  <td>
+                    <img width='300px' src='assets/img/levels/level-2.png'/>
+                  </td>
+                  <td>
+                    <img width='300px' src='assets/img/levels/level-3.png'/>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <img width='300px' src='assets/img/levels/level-4.png'/>
+                  </td>
+                  <td>
+                  </td>
+                  <td>
+                  </td>
+                  <td>
+                    <img width='300px' src='assets/img/levels/level-5.png'/>
+                  </td>
+                </tr>
+                <tr>
+                  <td>
+                    <img width='300px' src='assets/img/levels/level-6.png'/>
+                  </td>
+                  <td>
+                    <img width='300px' src='assets/img/levels/level-7d.png'/>
+                  </td>
+                  <td>
+                    <img width='300px' src='assets/img/levels/level-8.png'/>
+                  </td>
+                  <td>
+                    <div style='width: 300px;'>
+                      <video data-autoplay loop controls style='width: 100%; padding-bottom: 6px;'>
+                        <source src='assets/video/final.ogv' type='video/ogg'>
+                      </video>
+                    </div>
+                  </td>
+                </tr>
+              </table>
+            </div>
+
+            <div class='gi'
+                 style='grid-area: 9 / 1 / 20 / 11; text-align: center;'>
+              <h1 class='multilineheader'><span class='ml-highlight'>
+                Das war's!
+              </span></h1>
+            </div>
+          </div>
+        </section>
+
+
+        <section>
+          <h2 class='multilineheader'><span class='ml-highlight'>
+            Ideen-Ecke
+          </span></h2>
+          <ul>
+            <li class='fragment'> chromatische Aberration </li>
+            <li class='fragment'> nicht-Lochkamera-Modelle (z.B. Fischauge) </li>
+            <li class='fragment'> rekursiver Raytracer </li>
+            <li class='fragment'> Fresnel-Effekt </li>
+            <li class='fragment'> Glasmaterial (Refraktion) </li>
+            <li class='fragment'> Wireframe-Material </li>
+            <li class='fragment'> mehrere Lichtquellen </li>
+            <li class='fragment'> anderes Beleuchtungsmodell (Blinn-Phong, Cook-Torrance) </li>
+            <li class='fragment'> HDRI-Beleuchtung </li>
+            <li class='fragment'> mehr implizite Formen (Torus (="Donut")) </li>
+          </ul>
+        </section>
+
+
+        <section>
+          <h2 class='multilineheader'><span class='ml-highlight'>
+            Bildquellen
+          </span></h2>
+          <ul>
+            <!--<li> Super Mario Bros: Nintendo </li>
+            <li> God of War: Santa Monica Studius, Sony Entertainment </li>-->
+            <li> RGB cube: SharkD (Wikimedia) </li>
+            <li> Metalltextur: Texture Haven </li>
+            <li> Holztextur: Maarten Deckers (Unsplash) </li>
+          </ul>
+        </section>
+
+
+
+        <!-- Slide templates -->
+
+
+
+        <!--<section>
+          <div style="width: 100%; text-align: center;">
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <br/>
+            <h1 class='multilineheader'><span class='ml-highlight'>
+              Level X — Bla
+            </span></h1>
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              Bla
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Bla
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Bla </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              Bla
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Hackzeit
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <div style='width: 100%; text-align: center;'>
+                <br>
+                <br>
+                <br>
+                <br>
+                <br>
+                <span style='font-size: 72px;'>Bla</span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              Bla
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Ergebnis
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <br>
+              <div style='width: 100%; text-align: center;'>
+                <img width='650px' src='assets/img/levels/level-0.png'>
+                <br>
+                <span class='yay' style='font-size: 72px;'></span>
+              </div>
+            </div>
+
+          </div>
+        </section>
+
+
+        <section>
+          <div class='slide-grid-container'>
+            <h2 class='multilineheader ml-l'><span>
+              Bla
+            </span></h2>
+            <h2 class='multilineheader ml-r'><span>
+              Debugging
+            </span></h2>
+
+            <div class='gi gi-all'>
+              <ul>
+                <li> Bla </li>
+              </ul>
+            </div>
+
+          </div>
+        </section>-->
+
+
+
+
+
+
+
+      </div>
+
+    </div>
+
+    <!--<script src='lib/js/head.min.js'></script>-->
+    <script src='js/reveal.js'></script>
+
+    <!-- Prism.js code highlighter -->
+    <script type='text/javascript' src='js/prism.js'></script>
+
+    <script type='text/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/headjs/1.0.3/head.core.min.js'></script>
+
+    <script type='text/javascript' src='https://code.jquery.com/jquery-3.3.1.min.js'></script>
+
+    <script>
+      // Full list of configuration options available at:
+      // https://github.com/hakimel/reveal.js#configuration
+      Reveal.initialize({
+        width: 1280,
+        height: 1024,
+
+        controls: false,
+        progress: false,
+        history: true,
+        center: false,
+        slideNumber: false,
+        overview: true,
+        fragments: true,
+        transition: 'slide', // none/fade/slide/convex/concave/zoom
+        transitionSpeed: 'mine',
+
+        // Optional reveal.js plugins
+        dependencies: [
+          { src: 'plugin/math/math.js' }
+        ],
+      });
+
+
+      /**
+        Thanks to AlexandreDecan for this code
+        (https://github.com/hakimel/reveal.js/issues/1793)
+        */
+      // Automatic fragment numbering
+      var fragmentNumbering = function ( event ) {
+        var fragments = $(event.currentSlide).find('.fragment');
+        var order = new Array(fragments.length);
+        
+        $(fragments).filter('[data-index]').each( function () { 
+          var index = parseInt($(this).attr('data-index')) - 1;
+          if (index < 0 || index >= order.length) {
+            alert('Invalid data-index: ' + index);
+            return;
+          }
+          if (typeof order[index] == 'undefined') {
+            order[index] = [ $(this) ];
+          } else {
+            order[index].push($(this));
+          }
+        });
+        
+        var index = 0;
+        $(fragments).not('[data-index]').each( function () {
+          while(typeof order[index] != 'undefined') {
+            index = index + 1;
+          }
+          order[index] = [ $(this) ];
+        });
+        
+        $(order).each( function (index) {
+          $(this).each( function () { 
+            $(this).attr('data-fragment-index', index);
+          })
+        });
+      };
+      Reveal.addEventListener('ready', fragmentNumbering);
+      Reveal.addEventListener('slidechanged', fragmentNumbering);
+    </script>
+
+  </body>
+</html>

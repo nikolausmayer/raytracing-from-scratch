@@ -83,7 +83,7 @@ Vector get_ground_color(const Vector& ray_origin,
                         const Vector& ray_direction)
 {
   //return {255,0,0};
-  float distance = std::abs(ray_origin.y/ray_direction.y);
+  float distance = -ray_origin.y/ray_direction.y;
   float floor_hit_x = ray_origin.x + ray_direction.x*distance;
   float floor_hit_z = ray_origin.z + ray_direction.z*distance;
   if ((int)std::abs(std::floor(floor_hit_x))%2 == 

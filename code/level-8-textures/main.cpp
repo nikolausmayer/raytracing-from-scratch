@@ -318,8 +318,8 @@ Vector get_ground_color(const Vector& ray_origin,
   ray_hit_at = ray_origin + ray_direction*distance;
 
   static unsigned char* texture_data{nullptr};
-  static int tex_w{600};
-  static int tex_h{400};
+  const int tex_w{600};
+  const int tex_h{400};
   if (not texture_data) {
     std::ifstream texture("texture.ppm");
     texture_data = new unsigned char[tex_w*tex_h*3];
@@ -327,12 +327,12 @@ Vector get_ground_color(const Vector& ray_origin,
     texture.read(reinterpret_cast<char*>(texture_data), tex_w*tex_h*3);
   }
 
-  int tex_u = std::abs((int)(ray_hit_at.x*100)+1000)%tex_w;
-  int tex_v = std::abs((int)(ray_hit_at.z*100)+1100)%tex_h;
-  size_t color_start_idx = (tex_v*tex_w+tex_u)*3;
-  return Vector((int)(texture_data[color_start_idx+0]),
-                (int)(texture_data[color_start_idx+1]),
-                (int)(texture_data[color_start_idx+2]));
+  const int tex_u = std::abs((int)(ray_hit_at.x*100)+1000)%tex_w;
+  const int tex_v = std::abs((int)(ray_hit_at.z*100)+1100)%tex_h;
+  const size_t color_start_idx = (tex_v*tex_w+tex_u)*3;
+  return Vector(static_cast<float>(texture_data[color_start_idx+0]),
+                static_cast<float>(texture_data[color_start_idx+1]),
+                static_cast<float>(texture_data[color_start_idx+2]));
 }
 
 
@@ -495,7 +495,7 @@ int main(){
               ray_origin = ray_hit_at;
               ray_direction = ray_bounced_direction;
               reflectivity_at_hit = 0;
-              diffuse_factor_at_hit = 1;
+              diffuse_factor_at_hit = 0.8;
               specular_factor_at_hit = 0;
             } else {
               hit_color = get_sky_color(ray_direction);

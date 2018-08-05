@@ -500,9 +500,9 @@ int main(){
 
           /// Compute lighting at hit point
           //Vector light_at{0,100,0};
-          Vector light_at{uniform_random_01()*10,
+          Vector light_at{uniform_random_01()*30,
                           100,
-                          uniform_random_01()*10};
+                          uniform_random_01()*30};
           bool point_is_directly_lit{true};
           for (const auto& object : scene_objects) {
             /// Dummy variables
