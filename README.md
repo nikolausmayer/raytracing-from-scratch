@@ -28,7 +28,7 @@ This course is certainly not perfect. One known "issue" is that the Phong-like i
 Code
 ====
 
-The code is split into "levels" which follow the structure of the course. Each level introduces a new concept and build on the foundation of the prior levels.
+The code is split into "levels" which follow the structure of the course. Each level introduces a new concept and builds on the foundation of the prior levels.
 
 
 Licenses
