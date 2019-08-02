@@ -14,8 +14,12 @@
     <link rel='stylesheet' href='css/reveal.css'>
     <link rel='stylesheet' href='css/theme/white.css' id='theme'>
 
+    <!-- Code syntax highlighting -->
+    <!--<link rel='stylesheet' href='lib/css/solarized_light.css'>-->
+
     <!-- Prism.js -->
     <link rel='stylesheet' href='css/prism.css'>
+
 
     <!--[if lt IE 9]>
       <script src='lib/js/html5shiv.js'></script>
@@ -226,25 +230,25 @@
         <!--<section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              Bevor wir anfangen...
+              Before we start...
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              ...braucht ihr dies:
+              ...you will need these:
             </span></h2>
 
             <div class='gi gi-all'>
               <br>
               <ul style='margin-bottom: 30px;'>
-                <li> C++-Compiler mit C++11-Support (<code>g++</code> &geq; v4.8) </li>
-                <li> eine grafische Oberfläche (zum Bilder bewundern) </li>
-                <li> ein Bildanzeigeprogramm (<code><u>feh</u></code>, <code>eog</code>, <code>display</code>, <code>geeqie</code> ...) </li>
+                <li> C++ compiler with C++11 support (<code>g++</code> &geq; v4.8) </li>
+                <li> a graphical environment (to marvel at your results) </li>
+                <li> an image viewer app (<code><u>feh</u></code>, <code>eog</code>, <code>display</code>, <code>geeqie</code> ...) </li>
               </ul>
               <br>
               <br>
               <br>
               <br>
               <ul>
-                <li> die Slides (CC-BY-NC) und allen Code (MIT) gibt's später hier: </li><br>
+                <li> these slides (CC-BY-NC) and all code (MIT) will be here: </li><br>
                 <code><a href='https://github.com/nikolausmayer/raytracing-from-scratch'><b>github.com/nikolausmayer</b>/raytracing-from-scratch</a></code>
               </ul>
             </div>
@@ -269,7 +273,7 @@
             <br/>
             <br/>
             <p> 
-              <span>Sommercampus 2018</span><br/>
+              <span>Sommercampus 2019</span><br/>
               <span>Technische Fakult&auml;t</span><br/>
               <span>Universit&auml;t Freiburg</span>
               </p>
@@ -279,20 +283,20 @@
 
         <section>
           <h2 class='multilineheader'><span class='ml-highlight'>
-            Warum dieser Kurs?
+            Why this course?
           </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> Fakt: Computergrafik ist cool </li>
-                <li class='fragment'> Fakt: OpenGL ist eine Katastrophe (in Benutzerfreundlichkeit) </li>
-                <li class='fragment'> Fakt: Blender ist eine Black Box </li>
+                <li class='fragment'> Fact: Computer graphics are awesome </li>
+                <li class='fragment'> Fact: OpenGL is a mess (of user friendliness) </li>
+                <li class='fragment'> Fact: Blender is mostly a black box </li>
                 <br>
-                <li class='fragment'> meine Meinung: was man nie selbst gemacht hat, das hat man auch nie richtig verstanden </li>
+                <li class='fragment'> my own opinion: you can never fully understand something which you have never made yourself </li>
                 <br>
-                <li class='fragment'> Konsequenz: man sollte sich einen Renderer selbst erarbeiten </li>
+                <li class='fragment'> consequence: one should develop one's own renderer </li>
                 <br>
-                <li class='fragment'> dieser Kurs will die nächstbeste Alternative sein \Ü/ </li>
+                <li class='fragment'> this course wants to be the next best thing </li>
               </ul>
             </div>
         </section>
@@ -300,22 +304,22 @@
 
         <section>
           <h2 class='multilineheader'><span class='ml-highlight'>
-            Übersicht
+            Overview 
           </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li>    Einleitung </li>
-                <li> 0. Ein leeres Bild </li>
-                <li> 1. Himmel und Erde </li>
-                <li> 2. Dreiecke </li>
+                <li>    Introduction </li>
+                <li> 0. An empty image </li>
+                <li> 1. Heaven and earth </li>
+                <li> 2. Triangles </li>
                 <li> 3. Raytracing </li>
-                <li> 4. Energie </li>
-                <li> 5. Kugeln </li>
-                <li> 6. Licht </li>
-                <li> 7. Schatten </li>
-                <li> 8. Allerhand Zufälliges </li>
-                <li> 9. Texturen </li>
+                <li> 4. Ray energy </li>
+                <li> 5. Spheres </li>
+                <li> 6. Light </li>
+                <li> 7. Shadows </li>
+                <li> 8. Random stuff </li>
+                <li> 9. Textures </li>
                 <li> █. Bonus: ████████ </li>
               </ul>
             </div>
@@ -325,37 +329,37 @@
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              Einleitung
+              Introduction
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              "Computergrafik"
+              "Computer graphics"
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li> Aus Modellwissen Bilder generieren </li>
+                <li> Generating images from model knowledge </li>
               </ul>
               <table width="100%">
                 <tr>
-                  <td width="50%">
-                    <video data-autoplay loop controls style='width: 100%;'>
+                  <td width="50%" class="fragment">
+                    <video data-autoplay loop no-controls style='width: 100%;'>
                       <source src='assets/video/suzanne/wireframe2.ogv' type='video/ogg'>
                     </video>
                   </td>
-                  <td width="50%">
-                    <video data-autoplay loop controls style='width: 100%;'>
+                  <td width="50%" class="fragment">
+                    <video data-autoplay loop no-controls style='width: 100%;'>
                       <source src='assets/video/suzanne/hemilight2.ogv' type='video/ogg'>
                     </video>
                   </td>
                 </tr>
                 <tr>
-                  <td width="50%">
-                    <video data-autoplay loop controls style='width: 100%;'>
+                  <td width="50%" class="fragment">
+                    <video data-autoplay loop no-controls style='width: 100%;'>
                       <source src='assets/video/suzanne/sun2.ogv' type='video/ogg'>
                     </video>
                   </td>
-                  <td width="50%">
-                    <video data-autoplay loop controls style='width: 100%;'>
+                  <td width="50%" class="fragment">
+                    <video data-autoplay loop no-controls style='width: 100%;'>
                       <source src='assets/video/suzanne/final2.ogv' type='video/ogg'>
                     </video>
                   </td>
@@ -370,36 +374,36 @@
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              Einleitung
+              Introduction
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Raytracing vs Rasterisierung
+              Raytracing vs Rasterization
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li> Rasterisierung: Schritt-für-Schritt-Pipeline, ganzes Bild </li>
+                <li> Rasterization: step-by-step pipeline, whole image is processed in each step </li>
               </ul>
               <table width="100%" style="margin-top: 20px;">
                 <tr>
-                  <td width="32%">
+                  <td width="32%" class="fragment">
                     <img src='assets/img/suzanne/color.png'/>
                   </td>
-                  <td width="32%">
+                  <td width="32%" class="fragment">
                     <img src='assets/img/suzanne/diffuse.png'/>
                   </td>
-                  <td width="32%">
+                  <td width="32%" class="fragment">
                     <img src='assets/img/suzanne/specular.png'/>
                   </td>
                 </tr>
                 <tr>
-                  <td width="32%">
+                  <td width="32%" class="fragment">
                     <img src='assets/img/suzanne/depth.png'/>
                   </td>
-                  <td width="32%">
+                  <td width="32%" class="fragment">
                     <img src='assets/img/suzanne/ao.png'/>
                   </td>
-                  <td width="32%">
+                  <td width="32%" class="fragment">
                     <img src='assets/img/suzanne/combined.png'/>
                   </td>
                 </tr>
@@ -413,18 +417,18 @@
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              Einleitung
+              Introduction
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Raytracing vs Rasterisierung
+              Raytracing vs Rasterization
             </span></h2>
 
             <div class='gi gi-all'>
               <ul style='margin-bottom: 30px;'>
-                <li> Raytracing: Pixel-für-Pixel, jeder Pixel vollständig </li>
+                <li> Raytracing: pixel-by-pixel, each pixel complete on its own </li>
               </ul>
               <div style='width: 100%; text-align: center;'>
-                <video data-autoplay loop controls style='width: 50%;'>
+                <video data-autoplay loop no-controls style='width: 50%;'>
                   <source src='assets/video/line-by-line.ogv' type='video/ogg'>
                 </video>
               </div>
@@ -437,30 +441,31 @@
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              Einleitung
+              Introduction
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Raytracing vs Rasterisierung
+              Raytracing vs Rasterization
             </span></h2>
 
             <div class='gi gi-all'>
               <ul style='margin-bottom: 30px;'>
-                <li class='fragment'> Rasterisierung: </li>
+                <li class='fragment'> Rasterization: </li>
                   <ul style='margin-bottom: 30px;'>
-                    <li class='fragment'>ultra-optimierte Hardware (GPUs)</li>
-                    <li class='fragment'>ultra-optimierte Engines und Tools (OpenGL)</li>
-                    <li class='fragment'>(daher auch) schnell</li>
-                    <li class='fragment'>viele Effekte brauchen Tricks und Postprocessing</li>
+                    <li class='fragment'>ultra-optimized hardware (GPUs)</li>
+                    <li class='fragment'>ultra-optimized engines and tools (OpenGL)</li>
+                    <li class='fragment'>(thanks to that) fast</li>
+                    <li class='fragment'>many effects need tricks or post-processing</li>
                   </ul>
 
                 <li class='fragment'> Raytracing: </li>
                   <ul style='margin-bottom: 30px;'>
-                    <li class='fragment'>Reflexionen, Tiefenunschärfe etc. "schon dabei"</li>
-                    <li class='fragment'>kann physikalisch korrekt sein</li>
-                    <li class='fragment'>wird benutzt für Simulationen</li>
+                    <li class='fragment'>reflections, depth-of-field etc. are "all inclusive"</li>
+                    <li class='fragment'>can be physically correct</li>
+                    <li class='fragment'>is used for simulations</li>
+                    <li class='fragment'>(also special hardware (Nvidia RTX, AMD RDNA(?)))</li>
                   </ul>
 
-                <li class='fragment'> beide sind aktive Forschungsgebiete! </li>
+                <li class='fragment'> both are active research areas! </li>
               </ul>
             </div>
 
@@ -471,19 +476,20 @@
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              Einleitung
+              Introduction
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Literaturempfehlungen
+              Recommended reading
             </span></h2>
 
             <div class='gi gi-all'>
               <ul style='margin-bottom: 30px;'>
-                <li class='fragment'> "Graphics Study"-Blogposts von Adrian Courrèges </li>
-                <li class='fragment'> "Physically Based Rendering" von Pharr/Humphreys </li>
+                <li class='fragment'> "Graphics Study" blog posts by Adrian Courrèges </li>
+                <li class='fragment'> "Physically Based Rendering" book by Pharr/Humphreys </li>
+                <li class='fragment'> "Graphics Gems" book series </li>
                 <li class='fragment'> www.scratchapixel.com </li>
-                <li class='fragment'> Konferenzen: SIGGRAPH, SIGGRAPH Asia, EuroGraphics </li>
-                <li class='fragment'> auch: GDC (Entwicklerkonferenz mit Talks über Engines) </li>
+                <li class='fragment'> Conferences: SIGGRAPH, SIGGRAPH Asia, EuroGraphics </li>
+                <li class='fragment'> and: GDC (developer conference with talks on e.g. engines) </li>
               </ul>
             </div>
 
@@ -494,20 +500,20 @@
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              Einleitung
+              Introduction
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Kurs-Struktur
+              Course structure
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li> Einteilung in einzelne "Level", jeweils mit: </li>
+                <li> split into individual "levels", each with </li>
                   <ul>
-                    <li> Motivation </li>
-                    <li> Inhalt (mit Theorie) </li>
-                    <li> Coding-Session </li>
-                    <li> evtl. Ideen-Ecke </li>
+                    <li> motivation </li>
+                    <li> content (with theory) </li>
+                    <li> coding session </li>
+                    <li> inspirational ideas </li>
                   </ul>
               </ul>
             </div>
@@ -527,7 +533,7 @@
             <br/>
             <br/>
             <h1 class='multilineheader'><span class='ml-highlight'>
-              Level 0 — Ein leeres Bild
+              Level 0 — An empty image
             </span></h1>
           </div>
         </section>
@@ -536,15 +542,15 @@
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #0 Ein leeres Bild
+              #0 An empty image
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-            Was ist ein Bild?
+              What is an image?
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> eine geordnete Sammlung von Pixeln </li>
+                <li class='fragment'> an ordered collection of pixels </li>
               </ul>
 
               <table width="100%" style="margin-top: 20px;">
@@ -565,9 +571,9 @@
               </table>
 
               <ul style='margin-top: 10px;'>
-                <li class='fragment'> Pixel sind Tripel (<u>R</u>ot-<u>G</u>rün-<u>B</u>lau) </li>              
-                <li class='fragment'> ganze Zahlen 0–255 pro Farbkanal </li>              
-                <li class='fragment'> 16.7 Millionen Farben!!!1 </li>              
+                <li class='fragment'> pixel are triples (<u>R</u>ed-<u>G</u>reen-<u>B</u>lue) </li>              
+                <li class='fragment'> integer numbers 0–255 per color </li>              
+                <li class='fragment'> 16.7 million colors!!!1 </li>              
               </ul>
             </div>
             <div class='fragment' data-index=7 style='grid-area: 12/7/21/11;'>
@@ -581,24 +587,24 @@
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #0 Ein leeres Bild
+              #0 An empty image
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-            Das PPM-Bildformat
+            The PPM image format
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
                 <li class='fragment'> "Portable PixMap" </li>
-                <li class='fragment'> das denkbar einfachste Speicherformat </li>
-                <li class='fragment'> (keine Kompression, sehr ineffizient) </li>
-                <li class='fragment'> 3 Farben (RGB) pro Pixel </li>
-                <li class='fragment'> Header: <code>P3 BREITE HÖHE MAXIMUM</code> </li>
-                <li class='fragment'> bei uns: <code>P3 512 512 255</code> (mehr als 255 geht nicht) </li>
-                <li class='fragment'> <code>P3</code> heißt "ASCII-PPM" → menschenlesbar \Ü/
+                <li class='fragment'> the simplest possible format </li>
+                <li class='fragment'> (no compression, very inefficient) </li>
+                <li class='fragment'> 3 colors (RGB) per pixel </li>
+                <li class='fragment'> Header: <code>P3 WIDTH HEIGHT MAXIMUM</code> </li>
+                <li class='fragment'> in our case: <code>P3 512 512 255</code> </li>
+                <li class='fragment'> <code>P3</code> means "ASCII-PPM" → human readable \Ü/
                 <li class='fragment'> <code>P3 512 512 255 255 0 0 255 0 0 255 0 0 [...]</code> </li>
-                <li class='fragment'> <code>P<u>6</u> 512 512 255 ÿ^@^@ÿ^@^@ÿ^@^@[...]</code>  (binär-PPM) </li>
-                <li class='fragment'> links-nach-rechts, oben-nach-unten, Leerzeichentrennung </li>
+                <li class='fragment'> <code>P<u>6</u> 512 512 255 ÿ^@^@ÿ^@^@ÿ^@^@[...]</code>  (binary PPM) </li>
+                <li class='fragment'> left-to-right, top-to-bottom, separation by spaces </li>
               </ul>
             </div>
 
@@ -609,10 +615,10 @@
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #0 Ein leeres Bild
+              #0 An empty image
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-            Der Code-Grundstein
+            The code basis
             </span></h2>
 
             <div class='gi gi-all fragment'>
@@ -628,8 +634,8 @@ for(int y = 0; y < 512; ++y) {    /// Rows
   }
 }</code></pre>
               <ul>
-                <li class='fragment'> 512 · 512 = <b>262144 rote Pixel</b> </li>
-                <li class='fragment'> (wir könnten auch&nbsp; <code>&lt;&lt; " 255 0 0"</code> &nbsp;schreiben </li>
+                <li class='fragment'> 512 · 512 = <b>262144 red pixels </b> </li>
+                <li class='fragment'> (we could write&nbsp; <code>&lt;&lt; " 255 0 0"</code> &nbsp;instead) </li>
               </ul>
             </div>
 
@@ -640,10 +646,10 @@ for(int y = 0; y < 512; ++y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #0 Ein leeres Bild
+              #0 An empty image
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -653,7 +659,7 @@ for(int y = 0; y < 512; ++y) {    /// Rows
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'>Dummy-Bild</span>
+                <span style='font-size: 72px;'>Dummy image</span>
               </div>
             </div>
 
@@ -664,10 +670,10 @@ for(int y = 0; y < 512; ++y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #0 Ein leeres Bild
+              #0 An empty image
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -686,7 +692,7 @@ for(int y = 0; y < 512; ++y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #0 Ein leeres Bild
+              #0 An empty image
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Debugging
@@ -694,15 +700,15 @@ for(int y = 0; y < 512; ++y) {    /// Rows
 
             <div class='gi gi-all'>
               <ul>
-                <li> Schleifengrenzen (&lt; / &leq;) </li>
-                <li> Dateigröße: <code><b>$ du --bytes img.ppm</b></code> </li>
+                <li> Loop conditions (&lt; / &leq;) </li>
+                <li> file size: <code><b>$ du --bytes img.ppm</b></code> </li>
                   <ul>
-                    <li> "<code>P3 512 512 255</code>" = 14 Bytes Header </li>
-                    <li> "<code> 255 0 0</code>" = 8 Bytes pro Pixel (ASCII: 1 Byte/Zeichen) </li>
-                    <li> → 14 + 8 · (512 · 512) = <u>2097166</u> Bytes </li<
+                    <li> "<code>P3 512 512 255</code>" = 14 bytes header </li>
+                    <li> "<code> 255 0 0</code>" = 8 bytes per pixel (ASCII: 1 byte/character) </li>
+                    <li> → 14 + 8 · (512 · 512) = <u>2097166</u> bytes </li<
                   </ul>
-                <li> Dateiinhalt: <code><b>$ head -c 100 img.ppm</b></code> </li>
-                <pre class='language-cpp'><code class='language-cpp'>P3 512 512 255 255 0 0 255 0 0 255 0 0 255 0 0 ... </code></pre>
+                <li> file contents: <code><b>$ head -c 100 img.ppm</b></code> </li>
+                <pre class='language-cpp'><code class='language-cpp'>P3 512 512 255 255 0 0 255 0 0 255 0 0 ... </code></pre>
               </ul>
             </div>
 
@@ -721,7 +727,7 @@ for(int y = 0; y < 512; ++y) {    /// Rows
             <br/>
             <br/>
             <h1 class='multilineheader'><span class='ml-highlight'>
-              Level 1 — Himmel und Erde
+              Level 1 — Heaven and earth
             </span></h1>
           </div>
         </section>
@@ -730,24 +736,24 @@ for(int y = 0; y < 512; ++y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Was ist eine Kamera?
+              What is a camera?
             </span></h2>
 
             <div class='gi gi-left'>
               <ul>
-                <li class='fragment'> Annahme: <i>Lochkamera</i> </li>
-                <li class='fragment'> (keine Objektiv-Effekte) </li>
-                <li class='fragment'> Eigenschaften: </li>
+                <li class='fragment'> assumption: <i>pinhole cam</i> </li>
+                <li class='fragment'> (no lens effects) </li>
+                <li class='fragment'> attributes: </li>
                   <ul>
-                    <li class='fragment'> Projektionszentrum </li>
-                    <li class='fragment'> Blickrichtung </li>
-                    <li class='fragment'> "Brennweite" (=Zoom) </li>
-                    <li class='fragment'> Bildbreite/-höhe beliebig! </li>
+                    <li class='fragment'> projection center </li>
+                    <li class='fragment'> viewing direction </li>
+                    <li class='fragment'> "focal length" (=zoom) </li>
+                    <li class='fragment'> image width/height </li>
                   </ul>
-                <li class='fragment'> Annahme: 4x4-Pixel-Bild </li>
+                <li class='fragment'> assumption: 4×4 pixels </li>
               </ul>
             </div>
             <div class='gi gi-right fragment' data-index=1>
@@ -770,24 +776,24 @@ for(int y = 0; y < 512; ++y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Welt-Koordinatensystem
+              World coordinate system
             </span></h2>
 
             <div class='gi gi-left'>
               <ul>
-                <li class='fragment'> Z-Achse "in Blickrichtung" </li>
-                <li class='fragment'> zusammen mit X/Y: ein Koordinatensystem </li>
-                <li class='fragment'> hier: linke-Hand-System </li>
-                <li class='fragment'> X NACH RECHTS </li>
-                <li class='fragment'> Y NACH OBEN </li>
-                <li class='fragment'> Z NACH VORNE </li>
+                <li class='fragment'> Z axis in viewing direction </li>
+                <li class='fragment'> together with X/Y: coordinate base </li>
+                <li class='fragment'> here: left-hand system </li>
+                <li class='fragment'> X RIGHTWARDS </li>
+                <li class='fragment'> Y UPWARDS </li>
+                <li class='fragment'> Z FORWARDS </li>
                 <br>
-                <li class='fragment'> egal, welches System, aber: </li>
-                <li class='fragment'> <i>man muss sich entscheiden</i> </li>
-                <li class='fragment'> <i>und konsistent bleiben</i> </li>
+                <li class='fragment'> the system does not matter, but </li>
+                <li class='fragment'> <i>one has to make a choice</i> </li>
+                <li class='fragment'> <i>and then be consistent</i> </li>
               </ul>
             </div>
             <div class='gi gi-right'>
@@ -806,21 +812,21 @@ for(int y = 0; y < 512; ++y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Strahlen basteln
+              Making rays
             </span></h2>
 
             <div class='gi gi-left'>
               <ul>
-                <li> Z-Achse "in Blickrichtung" </li>
-                <li> zusammen mit X/Y: ein Koordinatensystem </li>
-                <li> hier: linke-Hand-System </li>
-                <li class='fragment'> <b>Strahl = 3D-Vektor</b> </li>
-                <li class='fragment'> <b>Strahl = Vektorzug</b> </li>
-                <li class='fragment'> Längenverhältnis Z:X bzw. Y definiert den Zoomfaktor </li>
-                <li class='fragment'> Strahllänge normalisieren! </li>
+                <li> Z axis in viewing direction </li>
+                <li> together with X/Y: coordinate base </li>
+                <li> here: left-hand system </li>
+                <li class='fragment'> <b>ray = 3D vector</b> </li>
+                <li class='fragment'> <b>ray = vector chain</b> </li>
+                <li class='fragment'> ratio of lengths X/Y to Z determines zoom </li>
+                <li class='fragment'> always normalize all rays to length 1.0! </li>
               </ul>
             </div>
             <div class='gi gi-right'>
@@ -847,10 +853,10 @@ for(int y = 0; y < 512; ++y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -860,7 +866,7 @@ for(int y = 0; y < 512; ++y) {    /// Rows
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'>Vektor-Klasse</span>
+                <span style='font-size: 72px;'>Vector class</span>
               </div>
             </div>
 
@@ -871,23 +877,23 @@ for(int y = 0; y < 512; ++y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Pixel-Offset
+              Pixel offset
             </span></h2>
 
             <div class='gi gi-left'>
               <ul>
-                <li class='fragment'> zwei Bedingungen: </li>
+                <li class='fragment'> two conditions </li>
                   <ul>
-                    <li class='fragment'> 1. Strahlen gehen durch Pixelmittelpunkte </li>
-                    <li class='fragment'> 2. (0,0) ist in der Bildmitte </li>
+                    <li class='fragment'> 1. rays go through pixel centers </li>
+                    <li class='fragment'> 2. (0,0) is in the image center </li>
                   </ul>
-                  <li class='fragment'> hier: Breite, Höhe <i>gerade</i> </li>
-                  <li class='fragment'> (0,2,4,... statt 1,3,5,...)</li>
-                  <li class='fragment'> → ganzzahlige Strahl-Koordinaten sind <i>falsch</i>! </li>
-                  <li class='fragment'> Pixelzentren (0.5,0.5), (0.5,1.5), ...</li>
+                  <li class='fragment'> here: width, height <i>even</i> </li>
+                  <li class='fragment'> (0,2,4,... and not 1,3,5,...)</li>
+                  <li class='fragment'> → integer coordinates are <i>wrong</i>! </li>
+                  <li class='fragment'> pixel centers (0.5,0.5), (0.5,1.5), ...</li>
               </ul>
             </div>
             <div class='gi gi-right'>
@@ -913,22 +919,21 @@ for(int y = 0; y < 512; ++y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Pixel-Offset
+              Pixel offset
             </span></h2>
 
             <div class='gi gi-all'>
-              <li class='fragment'> (0,0) ist in der Bildmitte </li>
-              <span class='fragment'> bisher: </span>
+              <span class='fragment'> up to now: </span>
               <pre class='language-cpp fragment'><code class='language-cpp'>
 for(int y = 0; y < 512; ++y) {    /// Rows
   for(int x = 0; x < 512; ++x) {  /// Columns
     ...
 </code></pre>
               <br>
-              <span class='fragment'> jetzt: Pixelzentren mit korrekten Koordinaten </span>
+              <span class='fragment'> from now on: pixel centers with correct coordinates </span>
               <pre class='language-cpp fragment'><code class='language-cpp'>
 for(int y = 256; y >= -255; --y) {    /// Rows
   for(int x = -255; x <= 256; ++x) {  /// Columns
@@ -946,10 +951,10 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -959,7 +964,7 @@ for(int y = 256; y >= -255; --y) {    /// Rows
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'>Strahlkonstruktion</span>
+                <span style='font-size: 72px;'>Ray construction</span>
               </div>
             </div>
 
@@ -970,25 +975,25 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Oben und Unten
+              Above and below
             </span></h2>
 
             <div class='gi gi-left'>
               <ul>
-                <li class='fragment'> Kamera zeigt "geradeaus" </li>
-                <li class='fragment'> (für mehr bräuchten wir Rotationsmatrizen..) </li>
-                <li class='fragment'> unendlicher flacher Boden, Y=0 (XZ-Ebene) </li>
-                <li class='fragment'> Kamera nicht auf Y=0! </li>
-                <li class='fragment'> Strahl trifft Boden, falls... </li>
+                <li class='fragment'> camera is "level" </li>
+                <li class='fragment'> (for more we would need rotation matrices) </li>
+                <li class='fragment'> infinite ground plane, Y=0 </li>
+                <li class='fragment'> camera not at Y=0! </li>
+                <li class='fragment'> ray hits ground if </li>
                   <ul>
-                    <li class='fragment'> ... Strahl.y &lt; 0 ! </li>
+                    <li class='fragment'> ... ray.y &lt; 0 ! </li>
                   </ul>
-                <li class='fragment'> Strahl trifft Himmel, falls... </li>
+                <li class='fragment'> ray hits sky if </li>
                   <ul>
-                    <li class='fragment'> ... Strahl.y &geq; 0 ! </li>
+                    <li class='fragment'> ... ray.y &geq; 0 ! </li>
                   </ul>
               </ul>
             </div>
@@ -1003,10 +1008,10 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -1016,7 +1021,7 @@ for(int y = 256; y >= -255; --y) {    /// Rows
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'> Boden und Himmel </span>
+                <span style='font-size: 72px;'> Ground and sky </span>
               </div>
             </div>
 
@@ -1027,10 +1032,10 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -1054,7 +1059,7 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Debugging
@@ -1062,7 +1067,7 @@ for(int y = 256; y >= -255; --y) {    /// Rows
 
             <div class='gi gi-all'>
               <ul>
-                <li> Koordinatensystemvektoren </li>
+                <li> Coordinate system vectors </li>
                 <li> <code>Vector::operator+</code>, <code>Vector::operator*</code> </li>
               </ul>
             </div>
@@ -1074,24 +1079,24 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Himmel 2.0
+              Heaven 2.0
             </span></h2>
 
             <div class='gi' style='grid-area: 3 / 1 / 21 / 9;'>
               <ul>
-                <li class='fragment'> alte Himmelsfarbe: konstant </li>
-                <li class='fragment'> alte Himmelsfarbe: abhängig vom Strahlwinkel </li>
+                <li class='fragment'> old sky color: constant </li>
+                <li class='fragment'> new sky color: depending on ray angle </li>
                   <ul>
-                    <li class='fragment'> horizontal: irgendwie blau </li>
-                    <li class='fragment'> vertikal: schwarz </li>
-                    <li class='fragment'> (totale Gestaltungsfreiheit!) </li>
+                    <li class='fragment'> horizontal: blue-ish </li>
+                    <li class='fragment'> vertical: black </li>
+                    <li class='fragment'> (totally up to you!) </li>
                   </ul>
-                  <li class='fragment'> horizontal: Strahl.y = 0, vertikal: Strahl.y = 1 </li>
-                  <li class='fragment'> Interpolation zwischen Farbe und schwarz:<br>
-                       <code>[Farbe] * std::pow(1-ray_direction.y,2)</code> </li>
+                  <li class='fragment'> horizontal: ray.y = 0, vertical: ray.y = 1 </li>
+                  <li class='fragment'> interpolation between color and black:<br>
+                       <code>[color] * std::pow(1-ray_direction.y,2)</code> </li>
               </ul>
             </div>
             <div class='gi fragment' data-index=3
@@ -1106,10 +1111,10 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -1119,7 +1124,7 @@ for(int y = 256; y >= -255; --y) {    /// Rows
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'> Himmel 2.0 </span>
+                <span style='font-size: 72px;'> Heaven 2.0 </span>
               </div>
             </div>
 
@@ -1130,10 +1135,10 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -1157,23 +1162,23 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Erde 2.0
+              Earth 2.0
             </span></h2>
 
             <div class='gi' style='grid-area: 3 / 1 / 21 / 9;'>
               <ul>
-                <li class='fragment'> nur rot ist langweilig </li>
-                <li class='fragment'> kein Raumgefühl </li>
-                <li class='fragment'> neuer Boden: Schachbrettmuster </li>
-                <li class='fragment'> Bodenkoordinate bestimmt Karoposition </li>
-                <li class='fragment'> → wir brauchen den "gesehenen" Punkt </li>
-                <li class='fragment'> → Schnittpunkt zwischen Strahl und "Y=0" </li>
-                <li class='fragment'> <code>Y = 0 = Kamera.y + Distanz · Strahl.y</code> </li>
-                <li class='fragment'> eine Gleichung, eine Unbekannte → \Ü/ </li>
-                <li class='fragment'> <code>Distanz := -Kamera.y / Strahl.y </code> </li>
+                <li class='fragment'> just red is boring </li>
+                <li class='fragment'> no sense of space </li>
+                <li class='fragment'> new ground: checkerboard </li>
+                <li class='fragment'> ground coordinate determines color </li>
+                <li class='fragment'> → we need the "observed" point </li>
+                <li class='fragment'> → intersection ray-ground </li>
+                <li class='fragment'> <code>Y = 0 = camera.y + distance · ray.y</code> </li>
+                <li class='fragment'> one equation, one unknown → \Ü/ </li>
+                <li class='fragment'> <code>distance := -camera.y / ray.y </code> </li>
               </ul>
             </div>
             <div class='gi fragment' data-index=4
@@ -1200,19 +1205,18 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Erde 2.0
+              Earth 2.0
             </span></h2>
 
             <div class='gi' style='grid-area: 3 / 1 / 21 / 9;'>
               <ul>
-                <li class='fragment'> <code>Distanz := -Kamera.y / Strahl.y </code> </li>
-                <li class='fragment'> <code>X := Kamera.x + Distanz · Strahl.x </code> </li>
-                <li class='fragment'> <code>Z := Kamera.z + Distanz · Strahl.z </code> </li>
-                <li class='fragment'> Schachbrett: X und Z beide gerade/ungerade </li>
-                <li class='fragment'> Stolperfalle: <code>std::abs</code> auf negativen Zahlen! </li>
+                <li class='fragment'> <code>distance := -camera.y / ray.y </code> </li>
+                <li class='fragment'> <code>X := camera.x + distance · ray.x </code> </li>
+                <li class='fragment'> <code>Z := camera.z + distance · ray.z </code> </li>
+                <li class='fragment'> checkerboard: X and Z both odd/even </li>
               </ul>
             </div>
             <div class='gi' style='grid-area: 3 / 9 / 21 / 11;'>
@@ -1226,10 +1230,10 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -1239,7 +1243,7 @@ for(int y = 256; y >= -255; --y) {    /// Rows
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'> Erde 2.0 </span>
+                <span style='font-size: 72px;'> Earth 2.0 </span>
               </div>
             </div>
 
@@ -1250,10 +1254,10 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -1277,7 +1281,7 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #1 Himmel und Erde
+              #1 Heaven and earth
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Debugging
@@ -1285,10 +1289,11 @@ for(int y = 256; y >= -255; --y) {    /// Rows
 
             <div class='gi gi-all'>
               <ul>
-                <li> Koordinatensystemvektoren </li>
-                <li> Strahllängennormalisierung </li>
+                <li> coordinate system vectors </li>
+                <li> ray length normalization </li>
+                <li> <code>std::abs</code> on negative numbers! </li>
                 <li> <code>(int)std::abs(std::floor(...))%2</code> </li>
-                <li> Strahl trifft Boden, falls <code>Strahl.y < 0</code> </li>
+                <li> ray hits ground if (and only if) <code>ray.y < 0</code> </li>
               </ul>
             </div>
 
@@ -1307,7 +1312,7 @@ for(int y = 256; y >= -255; --y) {    /// Rows
             <br/>
             <br/>
             <h1 class='multilineheader'><span class='ml-highlight'>
-              Level 2 — Dreiecke
+              Level 2 — Triangles
             </span></h1>
           </div>
         </section>
@@ -1316,18 +1321,18 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #2 Dreiecke
+              #2 Triangles
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Warum Dreiecke?
+              Why triangles
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> die Basis der meisten Polygone </li>
-                <li class='fragment'> (Polygone sind <i>die</i> Basis der Computergrafik) </li>
-                <li class='fragment'> einfach zu behandeln </li>
-                <li class='fragment'> außerdem... </li>
+                <li class='fragment'> the base of most polygons </li>
+                <li class='fragment'> (polygons are <i>the</i> base of computer graphics) </li>
+                <li class='fragment'> easy to compute </li>
+                <li class='fragment'> besides... </li>
               </ul>
             </div>
             <div class='fragment' 
@@ -1350,27 +1355,27 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #2 Dreiecke
+              #2 Triangles
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Was ist ein Dreieck?
+              What is a triangle?
             </span></h2>
 
             <div class='gi' style='grid-area: 3 / 1 / 21 / 9;'>
               <ul>
-                <li class='fragment'> definiert durch 3 Ecken/Vertices 
+                <li class='fragment'> defined by 3 corners/vertices
                      $$P_0, P_1, P_2$$ 
                 </li>
-                <li class='fragment'> aufgespannt durch 2 Vektoren $\mathbf{u}$, $\mathbf{v}$:
+                <li class='fragment'> spanned by 2 vectors $\mathbf{u}$, $\mathbf{v}$:
                      $$\mathbf{u} = P_1 - P_0$$ $$\mathbf{v} = P_2 - P_0$$ 
                 </li>
-                <li class='fragment'> Fläche beschrieben durch Punkte $\{p_i\}$
-                     $$p_i = u\cdot\mathbf{u} + v\cdot\mathbf{v}$$
-                     wobei gilt
+                <li class='fragment'> triangle area: points $\{p_i\}$
+                     $$p_i = P_0 + u\cdot\mathbf{u} + v\cdot\mathbf{v}$$
+                     for which it holds that
                      $$0 &leq; u,v &leq; 1$$
                      $$u + v &leq; 1$$ 
                 </li>
-                <li class='fragment'> (äquivalente Formulierung:)
+                <li class='fragment'> (equivalent form:)
                      $$p_i = (1-u-v)\cdot P_0 + u\cdot P_1 + v\cdot P_2$$
                 </li>
               </ul>
@@ -1399,28 +1404,28 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #2 Dreiecke
+              #2 Triangles
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Schnitt-Test Strahl/Dreieck
+              Intersection ray/triangle
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> Kamerazentrum $\mathbf{O}$, Strahlrichtung $\mathbf{R}$, Distanz $d$ </li>
+                <li class='fragment'> camera center $\mathbf{O}$, ray direction $\mathbf{R}$, distance $d$ </li>
                 <li class='fragment'> $P_{0} + u\cdot\mathbf{u} + v\cdot\mathbf{v} = \mathbf{O} + d\cdot\mathbf{R}$ </li>
-                <li class='fragment'> → lineares Gleichungssystem
+                <li class='fragment'> → linear equation system
                 $$P_{0,x} + u\cdot\mathbf{u}_x + v\cdot\mathbf{v}_x = \mathbf{O}_x + d\cdot\mathbf{R}_x$$
                 $$P_{0,y} + u\cdot\mathbf{u}_y + v\cdot\mathbf{v}_y = \mathbf{O}_y + d\cdot\mathbf{R}_y$$
                 $$P_{0,z} + u\cdot\mathbf{u}_z + v\cdot\mathbf{v}_z = \mathbf{O}_z + d\cdot\mathbf{R}_z$$
                 </li>
-                <li class='fragment'> umgestellt:
+                <li class='fragment'> rearranged:
                 $$0 = P_{0,x} + u\cdot\mathbf{u}_x + v\cdot\mathbf{v}_x - \mathbf{O}_x - d\cdot\mathbf{R}_x$$
                 $$0 = P_{0,y} + u\cdot\mathbf{u}_y + v\cdot\mathbf{v}_y - \mathbf{O}_y - d\cdot\mathbf{R}_y$$
                 $$0 = P_{0,z} + u\cdot\mathbf{u}_z + v\cdot\mathbf{v}_z - \mathbf{O}_z - d\cdot\mathbf{R}_z$$
                 </li>
-                <li class='fragment'> 3 Gleichungen, 3 Unbekannte → \Ü/ </li>
-                <li class='fragment'> aber so viel Arbeit... ಥ_ಥ </li>
+                <li class='fragment'> 3 equations, 3 unknowns → \Ü/ </li>
+                <li class='fragment'> but so much work... ಥ_ಥ </li>
               </ul>
             </div>
 
@@ -1435,14 +1440,14 @@ for(int y = 256; y >= -255; --y) {    /// Rows
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #2 Dreiecke
+              #2 Triangles
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              LGS-Lösen für Faule
+              Lazy solving
             </span></h2>
 
             <div class='gi gi-all'>
-              <span class='fragment'> <code>SymPy</code> kann symbolische Mathe </span>
+              <span class='fragment'> <code>SymPy</code> can do symbolic math </span>
 
               <pre class='language-python fragment'><code class='language-python' style='font-size: 32px;'>from sympy import var, solve
 pox,poy,poz,ux,uy,uz,vx,vy,vz,ox,oy,oz,rx,ry,rz,u,v,d = 
@@ -1455,7 +1460,7 @@ print(solutions)
 
 {u: [...], v: [...], d: [...]}</code></pre>
 
-              <span class='fragment'> nicht schön, aber korrekt¯\_(ツ)_/¯ </span>
+              <span class='fragment'> not pretty but correct¯\_(ツ)_/¯ </span>
             </div>
 
         </section>
@@ -1464,23 +1469,23 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #2 Dreiecke
+              #2 Triangles
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Normalenvektor
+              Normal vectors
             </span></h2>
 
             <div class='gi' style='grid-area: 3 / 1 / 21 / 8;'>
               <ul>
-                <li class='fragment'> wir wollen Vorder- und Rückseite unterscheiden können </li>
-                <li class='fragment'> → wir brauchen den Normalenvektor $\mathbf{n}$ </li>
-                <li class='fragment'> (später auch noch für andere Sachen) </li>
-                <li class='fragment'> Kreuzprodukt und linke-Hand-Regel:
+                <li class='fragment'> we want to distinguish front and back </li>
+                <li class='fragment'> → we need the normal vector $\mathbf{n}$ </li>
+                <li class='fragment'> (also later for other things) </li>
+                <li class='fragment'> cross product and left-hand rule:
                      $$\mathbf{n} := \mathbf{v} \times \mathbf{u}$$ </li>
-                <li class='fragment'> Konsequenz: Vertex-Reihenfolge wichtig </li>
-                <li class='fragment'> → unsere Dreiecke sind <b>CCW</b> definiert<br>
-                     (<b>c</b>ounter<b>c</b>lock<b>w</b>ise, gg. Uhrzeigersinn) </li>
-                <li class='fragment'> (wenn man "von vorne" drauf guckt) </li>
+                <li class='fragment'> consequence: vertex order matters!</li>
+                <li class='fragment'> → our triangles are defined <b>CCW</b> <br>
+                     (<b>c</b>ounter<b>c</b>lock<b>w</b>ise) </li>
+                <li class='fragment'> (looking at it from its "front") </li>
               </ul>
             </div>
 
@@ -1489,7 +1494,7 @@ print(solutions)
               <img src='assets/img/triangle/triangle-3.png'>
             </div>
             <div class='gi fragment current-visible' data-index=6
-                 style='grid-area: 4 / 8 / 21 / 11; background: #fff; display: block;'>
+                 style='grid-area: 4 / 7 / 21 / 11; background: #fff; display: block;'>
               $$\begin{pmatrix}\mathbf{a}_x \\ \mathbf{a}_y \\ \mathbf{a}_z\end{pmatrix} \times
               \begin{pmatrix}\mathbf{b}_x \\ \mathbf{b}_y \\ \mathbf{b}_z \end{pmatrix}$$
               $$=$$
@@ -1515,16 +1520,16 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #2 Dreiecke
+              #2 Triangles
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Back-Face Culling 
+              Back-face culling 
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> der Normalenvektor bestimmt die Vorderseite </li>
-                <li class='fragment'> (wichtiger für Rasterisierung als für Raytracing (rückwärts gewandte Geometrie kann ignoriert werden)) </li>
+                <li class='fragment'> normal vector determines front side </li>
+                <li class='fragment'> (more important for rasterization than for raytracing) </li>
               </ul>
             </div>
             <div class='gi fragment' style='grid-area: 7 / 1 / 20 / 11; 
@@ -1547,17 +1552,17 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #2 Dreiecke
+              #2 Triangles
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Back-Face Culling 
+              Back-face culling 
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li> der Normalenvektor bestimmt die Vorderseite </li>
-                <li> (wichtiger für Rasterisierung als für Raytracing (rückwärts gewandte Geometrie kann ignoriert werden)) </li>
-                <li class='fragment'> Skalarprodukt<br><br>
+                <li> normal vector determines front side </li>
+                <li> (more important for rasterization than for raytracing) </li>
+                <li class='fragment'> scalar product<br><br>
                   $$\begin{pmatrix}\mathbf{a}_x \\ 
                                    \mathbf{a}_y \\
                                    \mathbf{a}_z\end{pmatrix} \cdot
@@ -1568,7 +1573,7 @@ print(solutions)
                     \mathbf{a}_y\mathbf{b}_y +
                     \mathbf{a}_z\mathbf{b}_z $$ 
                 </li><br>
-                <li class='fragment'> Strahl "sieht" Dreieck <i>genau dann wenn</i><br><br>
+                <li class='fragment'> ray "sees" triangle <i>if and only if</i><br><br>
                      $$\mathbf{n}\cdot\mathbf{R} &lt; 0$$ </li>
               </ul>
             </div>
@@ -1580,20 +1585,20 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #2 Dreiecke
+              #2 Triangles
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Implementierung
+              Implementation
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> abstrakte <code>Object</code>-Klasse für raytrace-bare Objekte </li>
-                <li class='fragment'> ein <code>Object</code> führt seinen eigenen Schnitttest durch </li>
-                <li class='fragment'> Tiefentest (nur das nächst gelegene Objekt wird gerendert) </li>
-                <li class='fragment'> Objekte haben eine eigene Farbe </li>
-                <li class='fragment'> falls ein Strahl kein Objekt trifft → haben wir schon! </li>
-                <li class='fragment'> alle Objekte in der Szene → <code>std::vector&lt;Object*&gt;</code> </li>
+                <li class='fragment'> abstract <code>Object</code> class for traceable objects </li>
+                <li class='fragment'> an <code>Object</code> does its own intersection test </li>
+                <li class='fragment'> depth test (only render the nearest object) </li>
+                <li class='fragment'> objects have a color </li>
+                <li class='fragment'> ray does not hit any object? → we already have that! </li>
+                <li class='fragment'> all scene objects → <code>std::vector&lt;Object*&gt;</code> </li>
               </ul>
             </div>
 
@@ -1604,10 +1609,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #2 Dreiecke
+              #2 Triangles
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -1617,7 +1622,7 @@ print(solutions)
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'>Objektklasse, Dreiecke</span>
+                <span style='font-size: 72px;'>Object class, triangles</span>
               </div>
             </div>
 
@@ -1628,10 +1633,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #2 Dreiecke
+              #2 Triangles
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -1655,7 +1660,7 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #2 Dreiecke
+              #2 Triangles
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Debugging
@@ -1663,10 +1668,10 @@ print(solutions)
 
             <div class='gi gi-all'>
               <ul>
-                <li> CCW-Dreiecke </li>
-                <li> $\mathbf{n} := \mathbf{v}\times\mathbf{u}$ &nbsp;und&nbsp; $\mathbf{n}\cdot\mathbf{R} &lt; 0$ </li>
-                <li> Tiefentest (Tiefe kleiner → Objekt "gesehener") </li>
-                <li> nur positive Tiefen </li>
+                <li> CCW vertices </li>
+                <li> $\mathbf{n} := \mathbf{v}\times\mathbf{u}$ &nbsp;and&nbsp; $\mathbf{n}\cdot\mathbf{R} &lt; 0$ </li>
+                <li> depth test (smaller depth → object closer) </li>
+                <li> only positive depths! </li>
               </ul>
             </div>
 
@@ -1697,15 +1702,15 @@ print(solutions)
               #3 Raytracing
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Strahlreflexion
+              Ray reflection
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> einfarbige Objekte sind langweilig </li>
-                <li class='fragment'> <i>Reflexionen</i> sind <u>die</u> Stärke von Raytracing </li>
-                <li class='fragment'> Problemstellung: gegeben Objekt und einfallender Strahl, finde den ausgehenden Strahl </li>
-                <li class='fragment'> einfache Lösung durch geometrische Konstruktion: </li>
+                <li class='fragment'> monochromatic objects are boring </li>
+                <li class='fragment'> <i>reflections</i> are <u>the</u> strong point of raytracing </li>
+                <li class='fragment'> problem: given object and incoming ray, find the outgoing ray</li>
+                <li class='fragment'> easy solution via geometric construction</li>
               </ul>
             </div>
 
@@ -1756,16 +1761,16 @@ print(solutions)
               #3 Raytracing
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Strahlreflexion
+              Ray reflection
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> der wichtige Vektor ist:&nbsp; $\mathbf{n}\cdot\left(\mathbf{n}\cdot\left(-\mathbf{R}\right)\right)$ </li>
-                <li class='fragment'> $\mathbf{n}\cdot\left(-\mathbf{R}\right)$&nbsp; ist die Länge der Projektion von &nbsp;$\mathbf{-R}$&nbsp; auf &nbsp;$\mathbf{n}$ </li>
-                <li class='fragment'> Skalarprodukt &nbsp;$\mathbf{n}\cdot\left(-\mathbf{R}\right)$&nbsp; ist ein Skalar (kein Vektor!) </li>
-                <li class='fragment'> wir wollen einen Vektor in Richtung &nbsp;$\mathbf{n}$ </li>
-                <li class='fragment'> → skalare Multiplikation mit &nbsp;$\mathbf{n}$&nbsp; =&nbsp; Skalierung von &nbsp;$\mathbf{n}$ </li>
+                <li class='fragment'> important vector:&nbsp; $\mathbf{n}\cdot\left(\mathbf{n}\cdot\left(-\mathbf{R}\right)\right)$ </li>
+                <li class='fragment'> $\mathbf{n}\cdot\left(-\mathbf{R}\right)$&nbsp; is the length of the projection of &nbsp;$\mathbf{-R}$&nbsp; onto &nbsp;$\mathbf{n}$ </li>
+                <li class='fragment'> scalar product &nbsp;$\mathbf{n}\cdot\left(-\mathbf{R}\right)$&nbsp; is a scalar (not a vector!) </li>
+                <li class='fragment'> we need a vector in direction of &nbsp;$\mathbf{n}$ </li>
+                <li class='fragment'> → scalar multiplikation ith &nbsp;$\mathbf{n}$&nbsp; =&nbsp; scaling of &nbsp;$\mathbf{n}$ </li>
               </ul>
             </div>
 
@@ -1784,7 +1789,7 @@ print(solutions)
               #3 Raytracing
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Implementierung
+              Implementation
             </span></h2>
 
             <div class='gi gi-all'>
@@ -1803,7 +1808,7 @@ print(solutions)
               #3 Raytracing
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -1813,7 +1818,7 @@ print(solutions)
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'>Strahlreflexion</span>
+                <span style='font-size: 72px;'>Ray reflection</span>
               </div>
             </div>
 
@@ -1827,7 +1832,7 @@ print(solutions)
               #3 Raytracing
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -1859,10 +1864,10 @@ print(solutions)
 
             <div class='gi gi-all'>
               <ul>
-                <li> CCW-Richtung ist vom Blickwinkel abhängig </li>
-                <li> Back-Face Culling </li>
-                <li> Oberseiten der Dreiecke zur Kamera hin geneigt </li>
-                <li> <code>max_hit_bounces</code> beschränkt die Sichtbarkeit </li>
+                <li> "CCW" depends on viewing angle </li>
+                <li> Back-face culling </li>
+                <li> triangles' tops leaning towards camera </li>
+                <li> <code>max_hit_bounces</code> limits visibility </li>
               </ul>
             </div>
 
@@ -1881,7 +1886,7 @@ print(solutions)
             <br/>
             <br/>
             <h1 class='multilineheader'><span class='ml-highlight'>
-              Level 4 — Lichttransport
+              Level 4 — Light transport
             </span></h1>
           </div>
         </section>
@@ -1890,17 +1895,16 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #4 Lichttransport
+              #4 Light transport
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Spiegelung und Eigenfarbe
+              Reflection and object color
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> perfekte Spiegel sind langweilig </li>
-                <li class='fragment'> Materialien reflektieren unterschiedlich viel Licht </li>
-                <li class='fragment'> (widerspricht nicht unbedingt der Thermodynamik) </li>
+                <li class='fragment'> perfect mirrors are boring </li>
+                <li class='fragment'> materials have different reflectivities </li>
               </ul>
             </div>
 
@@ -1916,18 +1920,18 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #4 Lichttransport
+              #4 Light transport
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Farben mischen
+              Mixing colors
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> unsere Materialien bekommen eine <i>Reflektivität</i> </li>
-                <li class='fragment'> ein Strahl sieht auf seiner Reise viele Farben </li>
-                <li class='fragment'> die endgültige Farbe ist eine Mischung </li>
-                <li class='fragment'> (vorläufige Formulierung ohne Beleuchtung) </li>
+                <li class='fragment'> our materials have a <i>reflectivity</i> </li>
+                <li class='fragment'> a ray sees many colors on its journey </li>
+                <li class='fragment'> the final pixel color is a mixture </li>
+                <li class='fragment'> (preliminary formulation, no lighting) </li>
               </ul>
             </div>
 
@@ -1938,10 +1942,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #4 Lichttransport
+              #4 Light transport
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -1951,7 +1955,7 @@ print(solutions)
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'>Farbmischung</span>
+                <span style='font-size: 72px;'>Mixing colors</span>
               </div>
             </div>
 
@@ -1962,10 +1966,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #4 Lichttransport
+              #4 Light transport
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -1989,7 +1993,7 @@ print(solutions)
         <!--<section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #4 Lichttransport
+              #4 Light transport
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Debugging
@@ -2016,7 +2020,7 @@ print(solutions)
             <br/>
             <br/>
             <h1 class='multilineheader'><span class='ml-highlight'>
-              Level 5 — Kugeln
+              Level 5 — Spheres
             </span></h1>
           </div>
         </section>
@@ -2025,15 +2029,15 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #5 Kugeln
+              #5 Spheres
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Parametrische Formen
+              Parametrized shapes
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> Polygone erlauben variable Geometrie </li>
+                <li class='fragment'> polygons allow for arbitrary geometry </li>
               </ul>
             </div>
             <div class='gi fragment' style='grid-area: 7 / 1 / 19 / 11; 
@@ -2048,16 +2052,16 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #5 Kugeln
+              #5 Spheres
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Parametrische Formen
+              Parametrized shapes
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li> Polygone erlauben variable Geometrie </li>
-                <li> aber viel Komplexität braucht viel Geometrie </li>
+                <li> polygons allow for arbitrary geometry </li>
+                <li> but complexity needs many polygons </li>
               </ul>
             </div>
             <div class='gi' style='grid-area: 7 / 1 / 19 / 11; 
@@ -2072,17 +2076,17 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #5 Kugeln
+              #5 Spheres
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Parametrische Formen
+              Parametrized shapes
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li> Polygone erlauben variable Geometrie </li>
-                <li> aber viel Komplexität braucht viel Geometrie </li>
-                <li> ...viiiiiel Geometrie. (Stanford-Drache: 200.000 Dreiecke) </li>
+                <li> polygons allow for arbitrary geometry </li>
+                <li> but complexity needs many polygons </li>
+                <li> ...maaaany polygons. (Stanford dragon: 200.000 triangles) </li>
               </ul>
             </div>
             <div class='gi' style='grid-area: 7 / 1 / 19 / 11; 
@@ -2097,17 +2101,17 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #5 Kugeln
+              #5 Spheres
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Parametrische Formen
+              Parametrized shapes
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> echte Renderer benutzen hierachische Strukturen (BVH) </li>
-                <li class='fragment'> trotzdem: Mehr Geometrie → längere Renderzeit </li>
-                <li class='fragment'> Idee: Manche Formen lassen sich <i>berechnen</i> </li>
+                <li class='fragment'> real renderers use hierarchical structures </li>
+                <li class='fragment'> still: more geometry → longer render times</li>
+                <li class='fragment'> idea: some shapes can be <i>computed</i> </li>
               </ul>
             </div>
             <div class='gi fragment' style='grid-area: 7 / 1 / 19 / 11; 
@@ -2122,22 +2126,22 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #5 Kugeln
+              #5 Spheres
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Schnitttest
+              Intersection test
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> Randfall: Strahl "streift" Kugel gerade noch </li>
-                <li class='fragment'> $\mathbf{p} = $ &nbsp;Kamerazentrum $-$ Kugelzentrum;&nbsp; $r = $ &nbsp;Radius </li>
-                <li class='fragment'> Strecke zum Treffpunkt&nbsp; $ = \sqrt{\left(\mathbf{p}\cdot\mathbf{p}\right) + r^2} = \sqrt{||\mathbf{p}||^2 + r^2}$ </li>
-                <li class='fragment'> $ = \mathbf{p} \cdot$ Strahlrichtung </li>
-                <li class='fragment'> (Strahl hat Länge 1) </li>
-                <li class='fragment'> Strahl trifft → Strecke <i>größer</i> </li>
-                <li class='fragment'> trifft nicht → Strecke <i>kleiner</i> </li>
-                <li class='fragment'> → Schnitttest → \Ü/ </li>
+                <li class='fragment'> edge case: ray "grazes" sphere </li>
+                <li class='fragment'> $\mathbf{p} = $ &nbsp;sphere center $-$ camera center;&nbsp; $r = $ &nbsp;radius </li>
+                <li class='fragment'> distance to hit point&nbsp; $ = \sqrt{\left(\mathbf{p}\cdot\mathbf{p}\right) + r^2} = \sqrt{||\mathbf{p}||^2 + r^2}$ </li>
+                <li class='fragment'> $ = \mathbf{p} $ $ \cdot$ ray direction </li>
+                <li class='fragment'> (ray has length 1) </li>
+                <li class='fragment'> hit → <i>longer</i> </li>
+                <li class='fragment'> no hit → <i>shorter</i> </li>
+                <li class='fragment'> → intersection test → \Ü/ </li>
               </ul>
             </div>
             <div class='gi' 
@@ -2184,10 +2188,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #5 Kugeln
+              #5 Spheres
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -2197,7 +2201,7 @@ print(solutions)
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'>Kugel-Schnitttest</span>
+                <span style='font-size: 72px;'>Sphere intersection test</span>
               </div>
             </div>
 
@@ -2208,10 +2212,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #5 Kugeln
+              #5 Spheres
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -2235,7 +2239,7 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #5 Kugeln
+              #5 Spheres
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Debugging
@@ -2243,7 +2247,7 @@ print(solutions)
 
             <div class='gi gi-all'>
               <ul>
-                <li> $\mathbf{p}$ zeigt vom <i>Kugel</i>zentrum zum <i>Kamera</i>zentrum </li>
+                <li> $\mathbf{p}$ points from <i>sphere</i> center to <i>camera</i> center </li>
               </ul>
             </div>
 
@@ -2254,10 +2258,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #5 Kugeln
+              #5 Spheres
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Distanzrechnung
+              Distance computation
             </span></h2>
 
             <div class='gi fragment current-visible'
@@ -2307,12 +2311,12 @@ print(solutions)
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> $\mathbf{p} = $ &nbsp;Kamerazentrum $-$ Kugelzentrum;&nbsp; $r = $ &nbsp;Radius </li>
-                <li class='fragment'> $b = -\mathbf{p} \cdot$ Strahlrichtung </li>
+                <li class='fragment'> $\mathbf{p} = $ &nbsp;sphere center $-$ camera center;&nbsp; $r = $ &nbsp;radius </li>
+                <li class='fragment'> $b = \mathbf{p}$ $\cdot$ ray direction </li>
                 <li class='fragment'> $s = \sqrt{\left(\mathbf{p}\cdot\mathbf{p}\right) - b^2}$ </li>
                 <li class='fragment'> $t = \sqrt{r^2 - s^2}$ </li>
-                <li class='fragment'> $d = -b - t$ </li>
-                <li class='fragment'> → Distanz → \Ü/ </li>
+                <li class='fragment'> $d = b - t$ </li>
+                <li class='fragment'> → distance → \Ü/ </li>
               </ul>
             </div>
 
@@ -2323,10 +2327,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #5 Kugeln
+              #5 Spheres
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Normalenvektor
+              Normal vectors
             </span></h2>
 
             <div class='gi fragment current-visible'
@@ -2344,9 +2348,9 @@ print(solutions)
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> $\mathbf{p} = $ &nbsp;Kamerazentrum $-$ Kugelzentrum;&nbsp; $r = $ &nbsp;Radius </li>
-                <li class='fragment'> Normalenvektor&nbsp; $= \mathbf{p} + d\cdot$ Strahlrichtung </li>
-                <li class='fragment'> (Normalenvektor auf Länge 1 skalieren!) </li>
+                <li class='fragment'> $\mathbf{p} = $ &nbsp;sphere center $-$ camera center;&nbsp; $r = $ &nbsp;radius </li>
+                <li class='fragment'> normal vector&nbsp; $= -\mathbf{p} + d$ $\cdot$ ray direction </li>
+                <li class='fragment'> (scale normal vector to length 1!) </li>
               </ul>
             </div>
 
@@ -2357,10 +2361,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #5 Kugeln
+              #5 Spheres
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -2370,7 +2374,7 @@ print(solutions)
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'>Distanzrechnung, Normalenvektor</span>
+                <span style='font-size: 72px;'>Distance, normal vector</span>
               </div>
             </div>
 
@@ -2381,10 +2385,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #5 Kugeln
+              #5 Spheres
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -2408,7 +2412,7 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #5 Kugeln
+              #5 Spheres
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Debugging
@@ -2416,8 +2420,8 @@ print(solutions)
 
             <div class='gi gi-all'>
               <ul>
-                <li> $\mathbf{p}$ zeigt vom <i>Kugel</i>zentrum zum <i>Kamera</i>zentrum </li>
-                <li> $\mathbf{b}$ hat negative Länge </li>
+                <li> $\mathbf{p}$ points from <i>sphere</i> center to <i>camera</i> center </li>
+                <li> $\mathbf{b}$ has negative length </li>
               </ul>
             </div>
 
@@ -2436,7 +2440,7 @@ print(solutions)
             <br/>
             <br/>
             <h1 class='multilineheader'><span class='ml-highlight'>
-              Level 6 — Licht
+              Level 6 — Light
             </span></h1>
           </div>
         </section>
@@ -2445,20 +2449,20 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #6 Licht
+              #6 Light
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Phong-Beleuchtungsmodell
+              Phong illumination model
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> perfekte Farben sind langweilig </li>
-                <li class='fragment'> Licht erzeugt Schatten, Spiegelungen, Schattierungen... </li>
-                <li class='fragment'> "echte" Lichtsimulation wäre hanebüchen teuer </li>
-                <li class='fragment'> wir benutzen das <i>Phong</i>-Modell (oder was ähnliches) </li>
-                <li class='fragment'> (nicht physikalisch korrekt, aber einfach zu berechnen) </li>
-                <li class='fragment'> Materialien haben eigene Koeffizienten pro Komponente </li>
+                <li class='fragment'> perfect colors are boring </li>
+                <li class='fragment'> light generates shadows, reflections, shading... </li>
+                <li class='fragment'> "real" light simulation is infeasible </li>
+                <li class='fragment'> we use the <i>Phong</i> model (or something similar) </li>
+                <li class='fragment'> (not physically correct, but easy) </li>
+                <li class='fragment'> materials have coefficients per component </li>
               </ul>
             </div>
             <div class='gi'
@@ -2480,8 +2484,8 @@ print(solutions)
                 </tr>
                 <tr>
                   <td class='fragment' data-index=7> ambient </td>
-                  <td class='fragment' data-index=8> + diffus </td>
-                  <td class='fragment' data-index=9> + glänzend </td>
+                  <td class='fragment' data-index=8> + diffuse </td>
+                  <td class='fragment' data-index=9> + specular </td>
                   <td class='fragment' data-index=10> = Phong </td>
                 </tr>
               </table>
@@ -2494,19 +2498,19 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #6 Licht
+              #6 Light
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ambiente Beleuchtung
+              Ambient light
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> konstante Lichtstärke überall in der Szene </li>
-                <li class='fragment'> unabhängig von allen Lichtquellen </li>
-                <li class='fragment'> billige Imitation globaler Beleuchtung, sieht aber gut aus </li>
-                <li class='fragment'> konstanter Faktor&nbsp; $k_\text{ambient}$, bei uns: materialunabhängig </li>
-                <li class='fragment'> ($C_\text{material}$: Materialfarbe)
+                <li class='fragment'> constant light everywhere in the scene </li>
+                <li class='fragment'> independent of light sources </li>
+                <li class='fragment'> cheap imitation of global illumination </li>
+                <li class='fragment'> constant factor&nbsp; $k_\text{ambient}$, here: independent of material </li>
+                <li class='fragment'> ($C_\text{material}$: material color)
                 $$I_\text{ambient} = k_\text{ambient} \cdot C_\text{material}$$ </li>
               </ul>
             </div>
@@ -2529,8 +2533,8 @@ print(solutions)
                 </tr>
                 <tr>
                   <td style='background-color: #ff0;'> ambient </td>
-                  <td> + diffus </td>
-                  <td> + glänzend </td>
+                  <td> + diffuse </td>
+                  <td> + specular </td>
                   <td> = Phong </td>
                 </tr>
               </table>
@@ -2543,20 +2547,20 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #6 Licht
+              #6 Light
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Diffuse Beleuchtung
+              Diffuse light
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> abhängig von Richtung Oberfläche → Lichtquelle </li>
-                <li class='fragment'> → lokaler Normalenvektor </li>
-                <li class='fragment'> Maximum: Oberfläche senkrecht zum Licht → Objektfarbe </li>
-                <li class='fragment'> Minimum: Oberfläche parallel zum Licht → schwarz/nichts </li>
-                <li class='fragment'> perfektes Lambertsches Material 
-                $$I_\text{diffus} = f_\text{diffus} \cdot k_\text{diffus,material} \cdot C_\text{material}$$ </li>
+                <li class='fragment'> depends on direction "surface → light source" </li>
+                <li class='fragment'> → local normal vector </li>
+                <li class='fragment'> maximum: surface perpendicular to light → object color </li>
+                <li class='fragment'> minimum: surface parallel to light → black/nothing </li>
+                <li class='fragment'> perfect "Lambertian" material
+                $$I_\text{diffuse} = f_\text{diffuse} \cdot k_\text{diffuse,material} \cdot C_\text{material}$$ </li>
               </ul>
             </div>
             <div class='gi'
@@ -2578,8 +2582,8 @@ print(solutions)
                 </tr>
                 <tr>
                   <td> ambient </td>
-                  <td style='background-color: #ff0;'> + diffus </td>
-                  <td> + glänzend </td>
+                  <td style='background-color: #ff0;'> + diffuse </td>
+                  <td> + specular </td>
                   <td> = Phong </td>
                 </tr>
               </table>
@@ -2592,20 +2596,20 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #6 Licht
+              #6 Light
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Diffuse Beleuchtung
+              Diffuse light
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> Lichtfaktor abhängig von Ausrichtung der Oberfläche </li>
-                <li class='fragment'> $\mathbf{L} := $ Vektor vom Oberflächenpunkt zum Licht
-                $$f_\text{diffus} = \mathbf{n} \cdot \mathbf{L}$$ </li>
-                <li class='fragment'> nicht $\leq 0$ ! </li>
-                <li class='fragment'> (nicht dem Licht zugewandte Punkte sind nicht beleuchtet) </li>
-                <li class='fragment'> → <u>keine</u> Abhängigkeit von der Blickrichtung! </li>
+                <li class='fragment'> illumination factor depends on surface orientation </li>
+                <li class='fragment'> $\mathbf{L} := $ surface → light source 
+                      $$f_\text{diffuse} = \mathbf{n} \cdot \mathbf{L}$$ </li>
+                <li class='fragment'> never $\leq 0$ ! </li>
+                <li class='fragment'> (points that "look away" from the light are not lit) </li>
+                <li class='fragment'> → <u>no</u> dependency on viewing direction! </li>
               </ul>
             </div>
             <div class='gi'
@@ -2652,20 +2656,20 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #6 Licht
+              #6 Light
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Glänzende Beleuchtung
+              Specular light
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> abhängig von Richtung Oberfläche → Lichtquelle <br> 
-                      und Kamera → Oberfläche </li>
-                <li class='fragment'> "Größe" des Glanzlichtes kann Materialeigenschaft sein </li>
+                <li class='fragment'> depends on directions surface → light source <br> 
+                      and camera → surface </li>
+                <li class='fragment'> "size" of highlight can be individual </li>
                 <li class='fragment'> → "hardness"/"shininess" </li>
-                <li class='fragment'> Lichtfarbe statt Materialfarbe
-                $$I_\text{glanz} =  f_\text{glanz} \cdot k_\text{glanz,material} \cdot C_\text{licht}$$ </li>
+                <li class='fragment'> light color instead of material color 
+                $$I_\text{specular} =  f_\text{specular} \cdot k_\text{specular,material} \cdot C_\text{light}$$ </li>
               </ul>
             </div>
             <div class='gi'
@@ -2687,8 +2691,8 @@ print(solutions)
                 </tr>
                 <tr>
                   <td> ambient </td>
-                  <td> + diffus </td>
-                  <td style='background-color: #ff0;'> + glänzend </td>
+                  <td> + diffuse </td>
+                  <td style='background-color: #ff0;'> + specular </td>
                   <td> = Phong </td>
                 </tr>
               </table>
@@ -2701,18 +2705,18 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #6 Licht
+              #6 Light
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Glänzende Beleuchtung
+              Specular light
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> Glanzlicht = Lichtquelle spiegelt sich im Objekt </li>
-                <li class='fragment'> Maximum = "Oberfläche → Licht = ausgehender Strahl" </li>
-                <li class='fragment'> "harder"/"shinier" Material → Glanzlicht ist fokussierter <br><br>
-                $$f_\text{glanz} = \left(\mathbf{L}\cdot\mathbf{R}\right)^\text{hardness}$$ </li>
+                <li class='fragment'> highlight = light source reflection on surface </li>
+                <li class='fragment'> maximum = "surface → light = reflected ray" </li>
+                <li class='fragment'> "harder"/"shinier" material → highlight more focused <br><br>
+                $$f_\text{specular} = \left(\mathbf{L}\cdot\mathbf{R}\right)^\text{hardness}$$ </li>
               </ul>
             </div>
             <div class='gi'
@@ -2747,18 +2751,18 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #6 Licht
+              #6 Light
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Komplette Beleuchtung
+              Full lighting
             </span></h2>
 
             <div class='gi gi-all'>
-              <span class='fragment'> $$ I = I_\text{ambient} + I_\text{diffus} + I_\text{glanz} $$ </span>
-              <span class='fragment'> $$ I = \left( k_\text{ambient} + f_\text{diffus} \right) \cdot k_\text{diffus,material} \cdot C_\text{material} + \\
-                f_\text{glanz} \cdot k_\text{glanz,material} \cdot C_\text{Licht} $$ </span>
-              <span class='fragment'> $$ I = \left( k_\text{ambient} + \mathbf{n}\cdot\mathbf{L} \right) \cdot k_\text{diffus,material} \cdot C_\text{material} + \\
-                \left( \mathbf{L}\cdot\mathbf{R} \right)^\text{hardness} \cdot k_\text{glanz,material} \cdot C_\text{Licht} $$ </span>
+              <span class='fragment'> $$ I = I_\text{ambient} + I_\text{diffuse} + I_\text{specular} $$ </span>
+              <span class='fragment'> $$ I = \left( k_\text{ambient} + f_\text{diffuse} \right) \cdot k_\text{diffuse,material} \cdot C_\text{material} + \\
+                f_\text{specular} \cdot k_\text{specular,material} \cdot C_\text{light} $$ </span>
+              <span class='fragment'> $$ I = \left( k_\text{ambient} + \mathbf{n}\cdot\mathbf{L} \right) \cdot k_\text{diffuse,material} \cdot C_\text{material} + \\
+                \left( \mathbf{L}\cdot\mathbf{R} \right)^\text{hardness} \cdot k_\text{specular,material} \cdot C_\text{light} $$ </span>
             </div>
             <div class='gi'
                  style='grid-area: 11 / 1 / 20 / 11; text-align: center;'>
@@ -2779,8 +2783,8 @@ print(solutions)
                 </tr>
                 <tr>
                   <td> ambient </td>
-                  <td> + diffus </td>
-                  <td> + glänzend </td>
+                  <td> + diffuse </td>
+                  <td> + specular </td>
                   <td> = Phong </td>
                 </tr>
               </table>
@@ -2793,10 +2797,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #6 Licht
+              #6 Light
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -2806,7 +2810,7 @@ print(solutions)
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'>Beleuchtung</span>
+                <span style='font-size: 72px;'>Illumination</span>
               </div>
             </div>
 
@@ -2817,10 +2821,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #6 Licht
+              #6 Light
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -2844,7 +2848,7 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #6 Licht
+              #6 Light
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Debugging
@@ -2852,11 +2856,11 @@ print(solutions)
 
             <div class='gi gi-all'>
               <ul>
-                <li> $\mathbf{L}$: Oberfläche → Licht </li>
-                <li> $\mathbf{R}$: Oberfläche → ... </li>
-                <li> $\mathbf{n}$: Oberfläche → ... </li>
-                <li> $0 \leq f_\text{diffus}, f_\text{glanz} \leq 1$ </li>
-                <li> → Einheitslänge </li>
+                <li> $\mathbf{L}$: surface → light </li>
+                <li> $\mathbf{R}$: surface → ... </li>
+                <li> $\mathbf{n}$: surface → ... </li>
+                <li> $0 \leq f_\text{diffuse}, f_\text{specular} \leq 1$ </li>
+                <li> → unit length </li>
               </ul>
             </div>
 
@@ -2875,7 +2879,7 @@ print(solutions)
             <br/>
             <br/>
             <h1 class='multilineheader'><span class='ml-highlight'>
-              Level 7 — Schatten
+              Level 7 — Shadows
             </span></h1>
           </div>
         </section>
@@ -2884,25 +2888,25 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #7 Schatten
+              #7 Shadows
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Schatten
+              Shadows
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> wir haben <i>Schattierung</i>, aber keine <i>Schatten</i> </li>
-                <li class='fragment'> was liegt im Schatten? </li>
+                <li class='fragment'> we have <i>shading</i> but no <i>shadows</i> </li>
+                <li class='fragment'> what is in shadow? </li>
                   <ul>
-                    <li class='fragment'> was nicht im Licht liegt </li>
-                    <li class='fragment'> = Punkte, die das Licht nicht direkt "sehen" </li>
-                    <li class='fragment'> = Punkte, zwischen denen und dem Licht ein Objekt ist </li>
-                    <li class='fragment'> → Raytracing + Schnitttests! </li>
+                    <li class='fragment'> what is not in the light </li>
+                    <li class='fragment'> = points which do not "see" the light </li>
+                    <li class='fragment'> = points with an object between them and the light </li>
+                    <li class='fragment'> → Raytracing + intersection tests! </li>
                   </ul>
-                <li class='fragment'> → haben wir alles schon! \Ü/ </li>
-                <li class='fragment'> auch im Schatten: <br> 
-                     ambientes Licht! </li>
+                <li class='fragment'> → we have all of that! \Ü/ </li>
+                <li class='fragment'> even in shadow: <br> 
+                     ambient light! </li>
               </ul>
             </div>
             <div class='gi fragment' data-index=6
@@ -2937,10 +2941,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #7 Schatten
+              #7 Shadows
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -2950,7 +2954,7 @@ print(solutions)
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'>Schatten</span>
+                <span style='font-size: 72px;'>Shadows</span>
               </div>
             </div>
 
@@ -2961,10 +2965,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #7 Schatten
+              #7 Shadows
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -2988,7 +2992,7 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #7 Schatten
+              #7 Shadows
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Debugging
@@ -2996,7 +3000,7 @@ print(solutions)
 
             <div class='gi gi-all'>
               <ul>
-                <li> (siehe #6 Licht) </li>
+                <li> (cf. #6 Light) </li>
               </ul>
             </div>
 
@@ -3015,7 +3019,7 @@ print(solutions)
             <br/>
             <br/>
             <h1 class='multilineheader'><span class='ml-highlight'>
-              Level 8 — Allerhand Zufälliges
+              Level 8 — Random stuff
             </span></h1>
           </div>
         </section>
@@ -3024,7 +3028,7 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
 
@@ -3032,10 +3036,10 @@ print(solutions)
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> Anti-Aliasing </li>
-                <li class='fragment'> Matte Oberflächen </li>
-                <li class='fragment'> Weiche Schatten </li>
-                <li class='fragment'> Tiefenschärfe </li>
+                <li class='fragment'> anti-aliasing </li>
+                <li class='fragment'> matte surfaces </li>
+                <li class='fragment'> soft shadows </li>
+                <li class='fragment'> depth of field </li>
               </ul>
             </div>
 
@@ -3046,7 +3050,7 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Aliasing
@@ -3054,11 +3058,11 @@ print(solutions)
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> Sensorgitter: Auflösung&nbsp; $X$ </li>
-                <li class='fragment'> echte Welt: Auflösung&nbsp; $\infty$ </li>
-                <li class='fragment'> Aufnahme = Diskretisierung </li>
-                <li class='fragment'> ein Messpunkt = ein Wert </li>
-                <li class='fragment'> ein Strahl → Aliasing </li>
+                <li class='fragment'> sensor grid: resolution&nbsp; $X$ </li>
+                <li class='fragment'> real world: resolution&nbsp; $\infty$ </li>
+                <li class='fragment'> imaging = discretization </li>
+                <li class='fragment'> one ray = one measurement </li>
+                <li class='fragment'> single ray → aliasing </li>
               </ul>
             </div>
             <div class='gi gi-right fragment' data-index=2>
@@ -3081,17 +3085,17 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Anti-Aliasing
+              Anti-aliasing
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> ein Messpunkt = ein Wert </li>
-                <li class='fragment'> → viele Messpunkte </li>
-                <li class='fragment'> → Durchschnitt </li>
+                <li class='fragment'> one ray = one measurement </li>
+                <li class='fragment'> → multiple measurements </li>
+                <li class='fragment'> → average </li>
               </ul>
             </div>
             <div class='gi gi-right'>
@@ -3111,10 +3115,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -3124,7 +3128,7 @@ print(solutions)
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'> Anti-Aliasing </span>
+                <span style='font-size: 72px;'> Anti-aliasing </span>
               </div>
             </div>
 
@@ -3135,10 +3139,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all fragment current-visible'>
@@ -3170,7 +3174,7 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Debugging
@@ -3178,8 +3182,8 @@ print(solutions)
 
             <div class='gi gi-all'>
               <ul>
-                <li> zufälliges Offset&nbsp; $\in [-0.5, 0.5]^2$ </li>
-                <li> (eigentlich müsste eine Grenze exklusiv sein) </li>
+                <li> random offset&nbsp; $\in [-0.5, 0.5]^2$ </li>
+                <li> (one of the limits <i>should</i> really be excluded) </li>
               </ul>
             </div>
 
@@ -3190,15 +3194,15 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Oberflächenbeschaffenheit
+              Surface structure
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li> bisher: </li>
+                <li> up to now: </li>
               </ul>
             </div>
             <div class='gi'
@@ -3206,10 +3210,10 @@ print(solutions)
               <div style='width: 100%; text-align: center;'>
                 <img class='fragment' height='320px' data-index=1
                      src='assets/img/rough/surface-1-mirror.png'/><br>
-                  <span class='fragment' data-index=1> perfekte Reflexion </span>
+                  <span class='fragment' data-index=1> perfect reflection </span>
                 <img class='fragment' height='320px'  data-index=3
                      src='assets/img/rough/surface-0-absorbing.png'/><br>
-                  <span class='fragment' data-index=3> keine Reflexion </span>
+                  <span class='fragment' data-index=3> no reflection </span>
               </div>
             </div>
             <div class='gi'
@@ -3217,10 +3221,10 @@ print(solutions)
               <div style='width: 100%; text-align: center;'>
                 <img class='fragment' height='320px'  data-index=2
                      src='assets/img/levels/level-7a-crop-mirrorsphere.png'/><br>
-                <span class='fragment' data-index=2> spiegelnd </span><br>
+                <span class='fragment' data-index=2> mirroring </span><br>
                 <img class='fragment' height='320px'  data-index=4
                      src='assets/img/levels/level-7a-crop-floor.png'/><br>
-                <span class='fragment' data-index=4> absorbierend </span>
+                <span class='fragment' data-index=4> absorbing </span>
               </div>
             </div>
 
@@ -3231,20 +3235,20 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              matte Oberflächen
+              matte surfaces
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> <i>matte</i> Objekte spiegeln, aber nicht "sauber" </li>
-                <li class='fragment'> (Beispiel: poliertes vs sandgestrahltes Metall) </li>
-                <li class='fragment'> matte Oberflächen sind <i>raue</i> Oberflächen </li>
-                <li class='fragment'> raue Oberflächen haben zufällige Normalen </li>
-                <li class='fragment'> Stärke der Zufälligkeit = Rauheit, <i>roughness</i> </li>
-                <li class='fragment'> Simulation: Addiere zufälligen Vektor zur perfekten Reflexion </li>
+                <li class='fragment'> <i>matte</i> objects are like "bad mirrors" </li>
+                <li class='fragment'> (example: polished vs. sandblasted metal) </li>
+                <li class='fragment'> matte surfaces are <i>rough</i> surfaces </li>
+                <li class='fragment'> rough surfaces' normals are random </li>
+                <li class='fragment'> grade of randomness = roughness </li>
+                <li class='fragment'> simulation: take perfect reflection and add random offset vector </li>
               </ul>
             </div>
 
@@ -3301,22 +3305,22 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Implementierung
+              Implementation
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> wieso keine Zufallsaddition zum <i>Normalenvektor</i>? </li>
+                <li class='fragment'> why don't we add to the <i>normal</i> vector? </li>
                   <ul>
-                    <li class='fragment'> wäre eleganter, war aber insgesamt mehr Arbeit </li>
+                    <li class='fragment'> would be more elegant, but turned out to be harder </li>
                   </ul>
-                <li class='fragment'> unmögliche Reflexionen abfangen! 
+                <li class='fragment'> avoid impossible reflections
                 $$\mathbf{n}\cdot\mathbf{R} < 1 \Rightarrow \mathbf{R'} := \mathbf{R} + \mathbf{n}\cdot 2 \cdot\left(\mathbf{n}\cdot-\mathbf{R}\right)$$ </li> 
-                <li class='fragment'> (selbe Reflexionsformel wie in "#3 Raytracing") </li>
-                <li class='fragment'> nach der Änderung: Normale neu berechnen! 
+                <li class='fragment'> (same reflection formula as in "#3 Raytracing") </li>
+                <li class='fragment'> after the change: recompute effective normal 
                      $$\mathbf{n'} := \mathbf{R'}-\mathbf{V}$$ </li> 
               </ul>
             </div>
@@ -3350,10 +3354,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -3363,7 +3367,7 @@ print(solutions)
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'> matte Oberflächen </span>
+                <span style='font-size: 72px;'> matte surfaces </span>
               </div>
             </div>
 
@@ -3374,10 +3378,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -3401,7 +3405,7 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Debugging
@@ -3409,8 +3413,8 @@ print(solutions)
 
             <div class='gi gi-all'>
               <ul>
-                <li> Reflexion, Normale, Zufallsvektor → Einheitslänge </li>
-                <li> $\mathbf{R}\cdot\mathbf{n} \leq 0$ → ungültige Reflexion → Flip </li>
+              <li> reflection, normal, random offset → unit length  </li>
+                <li> $\mathbf{R}\cdot\mathbf{n} \leq 0$ → invalid reflection → flip </li>
               </ul>
             </div>
 
@@ -3421,19 +3425,19 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ideen-Ecke
+              Ideas
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li> matte Oberflächen </li>
+                <li> matte surfaces </li>
                   <ul>
-                    <li class='fragment'> bessere Modelle: z.B. <i>Microfacets</i> </li>
-                    <li class='fragment'> an-isotrope Rauheit: gebürstetes Metall ("Topfboden") </li>
-                    <li class='fragment'> <i>Normal mapping</i>: Normale mit Spezialtextur ändern </li>
+                    <li class='fragment'> better models: e.g. <i>microfacets</i> </li>
+                    <li class='fragment'> anisotropic roughness: brushed metal (bottoms of cooking pots) </li>
+                    <li class='fragment'> <i>normal mapping</i>: change normals according to a special texture </li>
                   </ul>
               </ul>
             </div>
@@ -3450,23 +3454,23 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Weiche Schatten
+              Soft shadows
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> nur harte Schatten sind langweilig </li>
-                <li class='fragment'> woher kommen weiche Schatten?
+                <li class='fragment'> perfect shadows are boring </li>
+                <li class='fragment'> where do soft shadows come from?
                   <ul>
-                    <li class='fragment'> atmosphärische Streuung (→ Volumen-Raytracing...) </li>
-                    <li class='fragment'> Flächen-Lichtquellen </li>
+                    <li class='fragment'> atmospheric scattering (→ volume tracing...) </li>
+                    <li class='fragment'> non-point light sources </li>
                   </ul>
                 </li>
-                <li class='fragment'> → Lichtquelle mit Zufallsposition </li>
-                <li class='fragment'> → wir haben schon alles dafür \Ü/ </li>
+                <li class='fragment'> → light with random position </li>
+                <li class='fragment'> → we already have that \Ü/ </li>
               </ul>
             </div>
 
@@ -3511,10 +3515,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -3524,7 +3528,7 @@ print(solutions)
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'> weiche Schatten </span>
+                <span style='font-size: 72px;'> Soft shadows </span>
               </div>
             </div>
 
@@ -3535,10 +3539,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -3562,7 +3566,7 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Debugging
@@ -3570,8 +3574,8 @@ print(solutions)
 
             <div class='gi gi-all'>
               <ul>
-                <li> in welchen Dimensionen ist die Lichtquelle ausgedehnt? </li>
-                <li> verrauschte Schatten? → mehr Samples </li>
+                <li> which position dimensions of the light source are randomized? </li>
+                <li> noisy shadows? → more samples! </li>
               </ul>
             </div>
 
@@ -3582,17 +3586,17 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Tiefenschärfe
+              Depth-of-field
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> bisher: immer alles perfekt im Fokus (Lochkamera) </li>
-                <li class='fragment'> → unrealistisch und langweilig </li>
-                <li class='fragment'> echte Kameras: Unschärfe durch Blendenöffnung </li>
+                <li class='fragment'> up to now: perfect focus (pinhole camera) </li>
+                <li class='fragment'> → unrealistic and boring </li>
+                <li class='fragment'> real cameras: blur by aperture (diaphragm opening) </li>
               </ul>
             </div>
 
@@ -3613,19 +3617,19 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Tiefenschärfe
+              Depth-of-field
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> wir haben kein Objektiv und keine "Blende" </li>
-                <li class='fragment'> → Simulation durch "Sensorverschiebung" </li>
-                <li class='fragment'> geometrische Konstruktion </li>
-                <li class='fragment' data-index=14> Fokaldistanz&nbsp; $f$, Kameraverschiebungsvektor&nbsp; $\mathbf{s}$<br>
-                $\Rightarrow$ &nbsp;Strahlverschiebungsvektor&nbsp; $= \frac{1}{d}\cdot \left(-\mathbf{s}\right)$ </li>
+                <li class='fragment'> we have neither a lens nor a diaphragm </li>
+                <li class='fragment'> → simulation by "sensor shift" </li>
+                <li class='fragment'> geometric construction </li>
+                <li class='fragment' data-index=14> focal distance &nbsp; $f$, camera shift vector&nbsp; $\mathbf{s}$<br>
+                $\Rightarrow$ &nbsp;ray shift vector&nbsp; $= \frac{1}{d}\cdot \left(-\mathbf{s}\right)$ </li>
               </ul>
             </div>
 
@@ -3685,19 +3689,19 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Tiefenschärfe
+              Depth-of-field
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> Punkte mit Distanz&nbsp; $d$ &nbsp; (hier: $4$) werden scharf abgebildet </li>
-                <li class='fragment'> (Strahlen aus verschobenen Kameras → selber Punkt) </li>
-                <li class='fragment'> nähere oder entferntere Punkte sind unscharf </li>
-                <li class='fragment'> (verschobene Kameras treffen <i>andere</i> Punkte) </li>
-                <li class='fragment'> → Tiefenschärfe </li>
+                <li class='fragment'> points at distance&nbsp; $d$ &nbsp; (here: $4$) are rendered "sharp" </li>
+                <li class='fragment'> (rays from different cam positions → same point) </li>
+                <li class='fragment'> closer or farther points are blurry </li>
+                <li class='fragment'> (shifted cams's rays hit <i>different</i> points) </li>
+                <li class='fragment'> → Depth-of-field </li>
               </ul>
             </div>
 
@@ -3713,10 +3717,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -3726,7 +3730,7 @@ print(solutions)
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'> Tiefenschärfe </span>
+                <span style='font-size: 72px;'> Depth-of-field </span>
               </div>
             </div>
 
@@ -3737,10 +3741,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -3764,7 +3768,7 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Debugging
@@ -3772,11 +3776,11 @@ print(solutions)
 
             <div class='gi gi-all'>
               <ul>
-                <li> Fokaldistanz&nbsp; $f$, Kameraverschiebungsvektor&nbsp; $\mathbf{s}$<br>
-                $\Rightarrow$ &nbsp;Strahlverschiebungsvektor&nbsp; $= \frac{1}{d}\cdot \left(-\mathbf{s}\right)$ </li>
-                <li> Kameraverschiebung entlang Sensorachsen (hier: X, Y) </li>
-                <li> Strahlnormalisierung nach Verschiebung </li>
-                <li> (Strahlen müssen <i>immer</i> Einheitslänge haben!) </li>
+                <li> focal distance&nbsp; $f$, camera shift vector&nbsp; $\mathbf{s}$<br>
+                $\Rightarrow$ &nbsp;ray shift vector&nbsp; $= \frac{1}{d}\cdot \left(-\mathbf{s}\right)$ </li>
+                <li> cam shift along sensor axes (here: X, Y) </li>
+                <li> ray normalization after shift-addition </li>
+                <li> (ray must <i>always</i> have unit length!) </li>
               </ul>
             </div>
 
@@ -3787,28 +3791,28 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #8 Zufälliges
+              #8 Random stuff
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ideen-Ecke
+              Ideas
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li> Anti-Aliasing </li>
-                <li> Matte Oberflächen </li>
-                <li> Weiche Schatten </li>
-                <li> Tiefenschärfe </li>
-                <li class='fragment'> mehr:
+                <li> anti-aliasing </li>
+                <li> matte surfacesen </li>
+                <li> soft shadows </li>
+                <li> depth of field </li>
+                <li class='fragment'> more:
                   <ul>
-                    <li class='fragment'> Bewegungsunschärfe (<i>motion blur</i>) </li> 
-                    <li class='fragment'> → zufällige Objekt- oder Kameraposition </li> 
-                    <li class='fragment'> Zoom-Unschärfe </li> 
-                    <li class='fragment'> → zufällige&nbsp; <code>RIGHT</code>/<code>UP</code>-Vektoren </li> 
-                    <li class='fragment'> billig berechnete transparente Objekte </li> 
-                    <li class='fragment'> → zufälliger Schnitttest </li> 
-                    <li class='fragment'> Blendenformen (Bokeh) </li> 
-                    <li class='fragment'> Tilt-Shift! ("Scheimpflugsche Regel") </li>
+                    <li class='fragment'> motion blur </li> 
+                    <li class='fragment'> → randomized object or cam position </li> 
+                    <li class='fragment'> zoom blur </li> 
+                    <li class='fragment'> → random&nbsp; <code>RIGHT</code>/<code>UP</code> vectors </li> 
+                    <li class='fragment'> cheap object transparency </li> 
+                    <li class='fragment'> → randomized hit test </li> 
+                    <li class='fragment'> aperture shapes ("bokeh") </li> 
+                    <li class='fragment'> tilt-shift! ("Scheimpflug principle") </li>
                   </ul>
                 </li>
               </ul>
@@ -3835,7 +3839,7 @@ print(solutions)
             <br/>
             <br/>
             <h1 class='multilineheader'><span class='ml-highlight'>
-              Level 9 — Texturen
+              Level 9 — Textures
             </span></h1>
           </div>
         </section>
@@ -3844,22 +3848,22 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #9 Texturen
+              #9 Textures
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Konzept
+              Concept
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> einfarbige Objekte sind langweilig </li>
-                <li class='fragment'> prozedurale Texturen (Schachbrett) auch </li>
-                <li class='fragment'> → <i>Texturen</i> </li>
+                <li class='fragment'> monochrome objects are boring </li>
+                <li class='fragment'> so are procedural textures (checkerboard) </li>
+                <li class='fragment'> → <i>textures</i> </li>
                   <ul>
-                    <li class='fragment'> wie "Tapeten", "Geschenkpapier" </li>
-                    <li class='fragment'> Bild → Objektfarbe </li>
-                    <li class='fragment'> welcher Bildpixel → welcher 3D-Punkt? </li>
-                    <li class='fragment'> → wir brauchen ein <i>Mapping</i> </li>
+                    <li class='fragment'> like "wallpapers", "gift wrap" </li>
+                    <li class='fragment'> image → object color </li>
+                    <li class='fragment'> which image pixel → which 3D point? </li>
+                    <li class='fragment'> → we need a <i>mapping</i> </li>
                   </ul>
               </ul>
             </div>
@@ -3875,7 +3879,7 @@ print(solutions)
             <div class='gi fragment' style='grid-area: 12 / 5 / 21 / 8;' data-index=5>
               <div style='width: 100%; text-align: center;'>
                 <img src='assets/img/textures/texture.png'/><br>
-                Bildtextur
+                image texture
               </div>
             </div>
 
@@ -3886,20 +3890,20 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #9 Texturen
+              #9 Textures
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Textur
+              Texture
             </span></h2>
 
             <div class='gi gi-all'>
               <br>
               <br>
               <br>
-              Download hier:<br> 
+              <br> 
               <br>
               <br>
-              lmb.informatik.uni-freiburg.de/people/mayern/o/texture.ppm
+              (<code>texture.ppm</code> found in this repository)
             </div>
 
           </div>
@@ -3909,10 +3913,10 @@ print(solutions)
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #9 Texturen
+              #9 Textures
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              PPM-Bilder lesen
+              Reading PPM images
             </span></h2>
 
             <div class='gi gi-all'>
@@ -3923,13 +3927,13 @@ print(solutions)
 f± jÕËyÙÕ<99>äßI<93><8e> [...]</code></pre>
               
               <ul>
-                <li class='fragment'> <code>P6</code> → Binär-PPM (1 Byte pro Farbkanal, 3 Bytes pro Pixel) </li>
-                <li class='fragment'> <code>600 400</code> → Auflösung 600x400 </li>
-                <li class='fragment'> Headergröße: "<code>P6 600 400 255 </code>" → <b>15</b> Bytes </li>
-                <li class='fragment'> Datengröße: 600 · 400 · 3 = 720000 Bytes </li>
-                <li class='fragment'> erwartete Dateigröße: 15 + 720000 = 720015 Bytes </li>
-                <li class='fragment'> <code>$ du -b texture.ppm</code>: <b>720016</b> Bytes! </li>
-                <li class='fragment'> warum der Unterschied? </li>
+                <li class='fragment'> <code>P6</code> binary PPM (1 byte per color channel, 3 bytes per pixel) </li>
+                <li class='fragment'> <code>600 400</code> → resolution 600x400 </li>
+                <li class='fragment'> header size: "<code>P6 600 400 255 </code>" → <b>15</b> bytes </li>
+                <li class='fragment'> data size: 600 · 400 · 3 = 720000 bytes </li>
+                <li class='fragment'> expected file size: 15 + 720000 = 720015 bytes </li>
+                <li class='fragment'> <code>$ du -b texture.ppm</code>: <b>720016</b> bytes! </li>
+                <li class='fragment'> difference? </li>
               </ul>
             </div>
 
@@ -3940,10 +3944,10 @@ f± jÕËyÙÕ<99>äßI<93><8e> [...]</code></pre>
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #9 Texturen
+              #9 Textures
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Intermezzo: Binärdateien lesen
+              Intermezzo: reading binary files
             </span></h2>
 
             <div class='gi gi-all'>
@@ -3953,8 +3957,8 @@ f± jÕËyÙÕ<99>äßI<93><8e> [...]</code></pre>
 0000020: d36d d2cc 85db d697 e2dd 6dd4 cc55 c9bf  .m........m..U..</code></pre>
               
               <ul>
-                <li class='fragment'> <code>0a</code> ist ein Zeilenumbruch </li>
-                <li class='fragment'> <code>20</code> ist ein Leerzeichen </li>
+                <li class='fragment'> <code>0a</code> is a newline </li>
+                <li class='fragment'> <code>20</code> is a whitespace </li>
               </ul>
               <br>
               <br>
@@ -3965,8 +3969,8 @@ f± jÕËyÙÕ<99>äßI<93><8e> [...]</code></pre>
 00afc80: 3cd3 cb33 d3cd 3fd5 d016 d1ca 30d4 ce0a  <..3..?.....0...</code></pre>
               
               <ul>
-                <li class='fragment'> überflüssiger Zeilenumbruch am Ende... </li>
-                <li class='fragment'> → können wir ignorieren \Ü/ </li>
+                <li class='fragment'> extra newline at the end... </li>
+                <li class='fragment'> → can be ignored \Ü/ </li>
               </ul>
             </div>
 
@@ -3977,10 +3981,10 @@ f± jÕËyÙÕ<99>äßI<93><8e> [...]</code></pre>
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #9 Texturen
+              #9 Textures
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              PPM-Bilder lesen
+              Reading PPM images
             </span></h2>
 
             <div class='gi gi-all'>
@@ -4003,10 +4007,10 @@ if (not texture_data) {
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #9 Texturen
+              #9 Textures
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -4016,7 +4020,7 @@ if (not texture_data) {
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'>Bodentextur</span>
+                <span style='font-size: 72px;'> Ground texture </span>
               </div>
             </div>
 
@@ -4027,10 +4031,10 @@ if (not texture_data) {
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #9 Texturen
+              #9 Textures
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -4062,9 +4066,9 @@ if (not texture_data) {
 
             <div class='gi gi-all'>
               <ul>
-                <li> Bodenkoordinaten in der XZ-Ebene </li>
-                <li> X = rechts, Z = "nach vorne"</li>
-                <li> (X,Z) hochskalieren für Texturkoordinaten </li>
+                <li> ground coordinates in the XZ plane </li>
+                <li> X = right, Z = "forwards"</li>
+                <li> scale up (X,Z) for image pixel coordinates </li>
               </ul>
             </div>
 
@@ -4075,21 +4079,21 @@ if (not texture_data) {
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #9 Texturen
+              #9 Textures
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ideen-Ecke
+              Ideas
             </span></h2>
 
             <div class='gi gi-all'>
               <ul>
-                <li> Texturen für: </li>
+                <li> texture for: </li>
                   <ul>
-                    <li> Farbe &checkmark; </li>
-                    <li> Normalenrichtung </li>
-                    <li> $k_\text{diffus,material}$, $k_\text{glanz,material}$ </li>
-                    <li> Rauheit </li>
-                    <li> Transparenz </li>
+                    <li> color &checkmark; </li>
+                    <li> normal direction </li>
+                    <li> $k_\text{diffuse,material}$, $k_\text{specular,material}$ </li>
+                    <li> roughness </li>
+                    <li> transparency </li>
                   </ul>
               </ul>
             </div>
@@ -4117,10 +4121,10 @@ if (not texture_data) {
                   </td>
                 </tr>
                 <tr>
-                  <td> diffuse Farbe </td>
-                  <td> Glanz </td>
-                  <td> Normale </td>
-                  <td> Rauheit </td>
+                  <td> diffuse color </td>
+                  <td> specularity </td>
+                  <td> normal </td>
+                  <td> roughness </td>
                 </tr>
               </table>
             </div>
@@ -4157,7 +4161,7 @@ if (not texture_data) {
             <br/>
             <br/>
             <h1 class='multilineheader'><span class='ml-highlight'>
-              Level &Omega; — Rotationsmatrizen
+              Level &Omega; — Rotation matrices
             </span></h1>
           </div>
         </section>
@@ -4166,7 +4170,7 @@ if (not texture_data) {
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #&Omega; Rotationsmatrizen
+              #&Omega; Rotation matrices
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Wait, what?
@@ -4174,13 +4178,13 @@ if (not texture_data) {
 
             <div class='gi gi-all'>
               <ul>
-                <li class='fragment'> bisher können wir Objekte und Kamera nur <i>verschieben</i> </li>
-                <li class='fragment'> Rotationen (=Drehungen) sind schwieriger </li>
-                <li class='fragment'> Herleitungsbeispiel in 2D:</li>
+                <li class='fragment'> up to now we can only <i>shift</i> objects </li>
+                <li class='fragment'> rotations are harder </li>
+                <li class='fragment'> 2D example:</li>
                 <br>
-                <li class='fragment'> Vektor &nbsp;$(x,y)$ </li>
-                <li class='fragment'> Einheitslänge </li>
-                <li class='fragment'> Drehung um &nbsp;$\alpha$ </li>
+                <li class='fragment'> vector &nbsp;$(x,y)$ </li>
+                <li class='fragment'> unit length </li>
+                <li class='fragment'> rotation by angle &nbsp;$\alpha$ </li>
               </ul>
             </div>
 
@@ -4224,7 +4228,7 @@ if (not texture_data) {
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #&Omega; Rotationsmatrizen
+              #&Omega; Rotation matrices
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Rotation in 2D
@@ -4232,7 +4236,7 @@ if (not texture_data) {
 
             <div class='gi gi-all'>
               <ul>
-                <li> Basisvektoren:
+                <li> basis vectors:
                 $$ \begin{pmatrix} 1 \\ 0 \end{pmatrix} \rightarrow 
                 \begin{pmatrix} \text{cos}(\alpha) \\ -\text{sin}(\alpha) \end{pmatrix}, 
                 \begin{pmatrix} 0 \\ 1 \end{pmatrix} \rightarrow 
@@ -4253,7 +4257,7 @@ if (not texture_data) {
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #&Omega; Rotationsmatrizen
+              #&Omega; Rotation matrices
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Rotation in 2D
@@ -4261,7 +4265,7 @@ if (not texture_data) {
 
             <div class='gi gi-all'>
               <ul>
-                <li> Rotation:
+                <li> rotation:
                 $$\begin{pmatrix} x'\\y' \end{pmatrix} = 
                   \begin{pmatrix} \text{cos}(\alpha) & -\text{sin}(\alpha) \\
                                   \text{sin}(\alpha) &  \text{cos}(\alpha) \end{pmatrix} \cdot
@@ -4282,48 +4286,21 @@ if (not texture_data) {
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #&Omega; Rotationsmatrizen
+              #&Omega; Rotation matrices
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Rotation in 3D
             </span></h2>
-            <!--<h2 class='multilineheader' 
-                style='grid-area: 1 / 4 / 3 / 11; 
-                       justify-self: end; 
-                       margin-right: -60px;'>
-              <span style='display: inline;
-                           background: #337eff;
-                           color: #fff;
-                           padding: 0;
-                           box-decoration-break: clone;
-                           box-shadow:  0em  .1em 0 #337eff,
-                                        0em -.1em 0 #337eff,
-                                       -.2em  .1em 0 #337eff,
-                                       -.2em -.1em 0 #337eff;'>
-                Seriously what the fu
-              </span>
-              <span style='display: inline;
-                           background: #fff;
-                           color: #fff;
-                           margin-left: -8px;
-                           box-decoration-break: clone;
-                           box-shadow:  0em  .15em 0 #fff,
-                                        0em -.15em 0 #fff,
-                                       -.2em  .15em 0 #fff,
-                                       -.2em -.15em 0 #fff;'>
-                x
-              </span></h2>-->
-
             <div class='gi gi-all'>
               <ul>
-                <li> in 3D: Drehung um Z-Achse:<br><br>
+                <li> in 3D: rotation around Z-axis:<br><br>
                 $$\begin{pmatrix} x'\\y'\\z' \end{pmatrix} = 
                   \begin{pmatrix} \text{cos}(\alpha) & -\text{sin}(\alpha) & 0 \\
                                   \text{sin}(\alpha) &  \text{cos}(\alpha) & 0 \\
                                   0 & 0 & 1 \end{pmatrix} \cdot
                   \begin{pmatrix} x\\y\\z \end{pmatrix}$$<br>
                 </li>
-                <li> X, Y (Vorzeichen folgen aus unserem Koordinatensystem):<br><br>
+                <li> X, Y (signs follow from our world coordinate system):<br><br>
                 $$\begin{pmatrix} 1 & 0 & 0 \\
                                   0 & \text{cos}(\alpha) & -\text{sin}(\alpha) \\
                                   0 & \text{sin}(\alpha) &  \text{cos}(\alpha) \end{pmatrix},
@@ -4341,10 +4318,10 @@ if (not texture_data) {
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #&Omega; Rotationsmatrizen
+              #&Omega; Rotation matrices
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Hackzeit
+              Hack time
             </span></h2>
 
             <div class='gi gi-all'>
@@ -4354,7 +4331,7 @@ if (not texture_data) {
                 <br>
                 <br>
                 <br>
-                <span style='font-size: 72px;'> Rotationsmatrizen </span>
+                <span style='font-size: 72px;'> Rotation matrices </span>
               </div>
             </div>
 
@@ -4365,10 +4342,10 @@ if (not texture_data) {
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #&Omega; Rotationsmatrizen
+              #&Omega; Rotation matrices
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -4389,7 +4366,7 @@ if (not texture_data) {
         <section>
           <div class='slide-grid-container'>
             <h2 class='multilineheader ml-l'><span>
-              #&Omega; Rotationsmatrizen
+              #&Omega; Rotation matrices
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
               Debugging
@@ -4397,8 +4374,8 @@ if (not texture_data) {
 
             <div class='gi gi-all'>
               <ul>
-                <li> Rotationsreihenfolge Z-Y-X == Matrizen X·Y·Z·Punkt </li>
-                <li> Euler-Winkel → <i>Gimbal lock</i> in kritischen Konfigurationen </li>
+                <li> order of rotation Z-Y-X == matrices X·Y·Z·point </li>
+                <li> Euler angles → <i>Gimbal lock</i> in critical configurations </li>
               </ul>
             </div>
 
@@ -4460,7 +4437,7 @@ if (not texture_data) {
             <div class='gi'
                  style='grid-area: 9 / 1 / 20 / 11; text-align: center;'>
               <h1 class='multilineheader'><span class='ml-highlight'>
-                Das war's!
+                That's it!
               </span></h1>
             </div>
           </div>
@@ -4469,33 +4446,33 @@ if (not texture_data) {
 
         <section>
           <h2 class='multilineheader'><span class='ml-highlight'>
-            Ideen-Ecke
+            More ideas
           </span></h2>
           <ul>
-            <li class='fragment'> chromatische Aberration </li>
-            <li class='fragment'> nicht-Lochkamera-Modelle (z.B. Fischauge) </li>
-            <li class='fragment'> rekursiver Raytracer </li>
-            <li class='fragment'> Fresnel-Effekt </li>
-            <li class='fragment'> Glasmaterial (Refraktion) </li>
-            <li class='fragment'> Wireframe-Material </li>
-            <li class='fragment'> mehrere Lichtquellen </li>
-            <li class='fragment'> anderes Beleuchtungsmodell (Blinn-Phong, Cook-Torrance) </li>
-            <li class='fragment'> HDRI-Beleuchtung </li>
-            <li class='fragment'> mehr implizite Formen (Torus (="Donut")) </li>
+            <li class='fragment'> chromatic aberration </li>
+            <li class='fragment'> non-pinhole cameras (z.B. fisheye) </li>
+            <li class='fragment'> recursive raytracing </li>
+            <li class='fragment'> Fresnel effect </li>
+            <li class='fragment'> glass material (refraction) </li>
+            <li class='fragment'> wireframe material </li>
+            <li class='fragment'> multiple light sources </li>
+            <li class='fragment'> other illumination models (Blinn-Phong, Cook-Torrance) </li>
+            <li class='fragment'> HDRI illumination </li>
+            <li class='fragment'> more implicit forms (torus (="donut")) </li>
           </ul>
         </section>
 
 
         <section>
           <h2 class='multilineheader'><span class='ml-highlight'>
-            Bildquellen
+            Image sources
           </span></h2>
           <ul>
             <!--<li> Super Mario Bros: Nintendo </li>
             <li> God of War: Santa Monica Studius, Sony Entertainment </li>-->
             <li> RGB cube: SharkD (Wikimedia) </li>
-            <li> Metalltextur: Texture Haven </li>
-            <li> Holztextur: Maarten Deckers (Unsplash) </li>
+            <li> metal texture: Texture Haven </li>
+            <li> wood texture: Maarten Deckers (Unsplash) </li>
           </ul>
         </section>
 
@@ -4571,7 +4548,7 @@ if (not texture_data) {
               Bla
             </span></h2>
             <h2 class='multilineheader ml-r'><span>
-              Ergebnis
+              Result
             </span></h2>
 
             <div class='gi gi-all'>
@@ -4621,9 +4598,9 @@ if (not texture_data) {
     <!-- Prism.js code highlighter -->
     <script type='text/javascript' src='js/prism.js'></script>
 
-    <script type='text/javascript' src='http://cdnjs.cloudflare.com/ajax/libs/headjs/1.0.3/head.min.js'></script>
+    <script type='text/javascript' src='js/head.min.js'></script>
 
-    <script type='text/javascript' src='https://code.jquery.com/jquery-3.3.1.min.js'></script>
+    <script type='text/javascript' src='js/jquery.min.js'></script>
 
     <script>
       // Full list of configuration options available at:
@@ -4636,11 +4613,16 @@ if (not texture_data) {
         progress: false,
         history: true,
         center: false,
-        slideNumber: false,
+        slideNumber: true,
         overview: true,
         fragments: true,
         transition: 'slide', // none/fade/slide/convex/concave/zoom
         transitionSpeed: 'mine',
+
+        math: {
+          mathjax: 'js/MathJax/MathJax.js',
+          config: 'TeX-AMS-MML_HTMLorMML',
+        },
 
         // Optional reveal.js plugins
         dependencies: [
