@@ -436,87 +436,6 @@ struct World
 };
 
 
-struct Ray
-{
-  Ray(const Vector& origin, 
-      const Vector& direction,
-      unsigned char* memory_target)
-    : origin(origin),
-      direction(direction),
-      color(0,0,0),
-      energy(1),
-      depth(0),
-      memory_target(memory_target),
-      parent(nullptr),
-      is_finalized{false}
-  { }
-
-  Ray(const Ray& other)
-    : origin(other.origin),
-      direction(other.direction),
-      color(other.color),
-      energy(other.energy),
-      depth(other.depth),
-      memory_target(other.memory_target),
-      children(other.children),
-      parent(other.parent),
-      is_finalized{other.is_finalized}
-  { }
-
-  Ray& operator=(const Ray& other)
-  {
-    origin = other.origin;
-    direction = other.direction;
-    color = other.color;
-    energy = other.energy;
-    depth = other.depth;
-    memory_target = other.memory_target;
-    children = other.children;
-    parent = other.parent;
-    is_finalized = other.is_finalized;
-
-    return *this;
-  }
-
-  ~Ray()
-  {
-    for (auto& child : children)
-      if (child)
-        delete child;
-    children.clear();
-  }
-
-  void finalize()
-  {
-    for (const auto& child : children)
-      if (not child->is_finalized)
-        return;
-
-    for (const auto& child : children)
-      color = color + child->color*child->energy;
-
-    is_finalized = true;
-
-    if (parent) 
-      parent->finalize();
-  }
-
-  Vector origin;
-  Vector direction;
-  Vector color;
-  float energy;
-  unsigned int depth;
-  unsigned char* memory_target;
-  std::vector<Ray*> children;
-  Ray* parent;
-  bool is_finalized;
-};
-
-std::deque<Ray*> rays_in_flight;
-std::mutex rays_in_flight__mutex;
-std::deque<Ray*> waiting_rays;
-std::mutex waiting_rays__mutex;
-
 
 void TraceRay(const World& world,
               Vector ray_origin,
@@ -656,18 +575,10 @@ void Sample(const World& world, int y, int x, int sample)
   ray_direction = !(ray_direction - sensor_shift*(1./4.));
   ray_direction = world.camera_rotation * ray_direction;
 
-  Ray* ray = new Ray{ray_origin, 
-                     ray_direction,
-         &world.raw_data[(((256-y)*512+(255+x))*AA_samples+sample)*3]};
-
-  waiting_rays__mutex.lock();
-  waiting_rays.push_back(ray);
-  waiting_rays__mutex.unlock();
-
-  //TraceRay(world,
-  //         ray_origin, 
-  //         ray_direction,
-  //         &world.raw_data[(((256-y)*512+(255+x))*AA_samples+sample)*3]);
+  TraceRay(world,
+           ray_origin, 
+           ray_direction,
+           &world.raw_data[(((256-y)*512+(255+x))*AA_samples+sample)*3]);
 }
 
 void Pixel(const World& world, int y, int x)
