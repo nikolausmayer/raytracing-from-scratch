@@ -152,11 +152,11 @@ struct Ray
         return false;
 
     for (const auto& child : children)
-      color = color + child->color*child->energy;
+      color = color + child->color*child->energy*energy;
 
     is_finalized = true;
 
-    if (parent) 
+    if (parent)
       parent->try_finalize();
 
     return true;
@@ -364,8 +364,12 @@ public:
     ray->hit_at = outgoing_ray_origin;
     ray->object_normal = !(outgoing_ray_direction - ray->direction);
     ray->direction = outgoing_ray_direction;
+
     ray->children.emplace_back(new Ray{outgoing_ray_origin,
                                        outgoing_ray_direction});
+    ray->children.back()->energy = reflectivity;
+    ray->children.back()->parent = ray;
+    ray->children.back()->depth  = ray->depth + 1;
 
 
     ray->color = color;
@@ -470,8 +474,13 @@ public:
     }
     ray->origin = outgoing_ray_origin;
     ray->direction = outgoing_ray_direction;
+
     ray->children.emplace_back(new Ray{outgoing_ray_origin,
                                        outgoing_ray_direction});
+    ray->children.back()->energy = reflectivity;
+    ray->children.back()->parent = ray;
+    ray->children.back()->depth  = ray->depth + 1;
+
     ray->object_normal = !(outgoing_ray_direction - ray->direction);
 
 		ray->color = color;
@@ -698,6 +707,13 @@ void TraceRayStep(const World& world,
 
     if (an_object_was_hit and closest_object_ptr) {
       closest_object_ptr->trace_object(ray);
+      /// Enqueue children
+      if (ray->children.size()) {
+        ray_tasks_in_flight__mutex.lock();
+        for (auto& child : ray->children)
+          ray_tasks_in_flight.push_front(child);
+        ray_tasks_in_flight__mutex.unlock();
+      }
     } else {
       if (ray->direction.y < 0) {
         get_ground_color(ray);
@@ -738,7 +754,7 @@ void TraceRayStep(const World& world,
     ray->color = ray->color * (1-ray->object_reflectivity);
 
     //final_color = final_color + (color*(ray_energy_left*(1-reflectivity_at_hit)));
-    ray->energy *= ray->object_reflectivity;
+    //ray->energy *= ray->object_reflectivity;
     //if (ray_energy_left <= 0)
     //  return;
   //}  /// <-- bounce loop end
@@ -873,10 +889,13 @@ int main() {
     Image(world);
     ray_tasks_in_flight__mutex.unlock();
 
+    unsigned long int ray_counter{0};
+
     std::vector<std::thread> workers;
     workers.emplace_back(std::thread{
-      [&world](){
+      [&world, &ray_counter](){
         while (ray_tasks_in_flight.size()) {
+          ++ray_counter;
           Ray* ray;
           ray_tasks_in_flight__mutex.lock();
           try {
@@ -889,11 +908,17 @@ int main() {
           ray_tasks_in_flight__mutex.unlock();
 
           TraceRayStep(world, ray);
-          ray->try_finalize();
+          if (ray->try_finalize()) {
+            Ray* ancestor{ray};
+            while (ancestor->parent and ancestor->is_finalized)
+              ancestor = ancestor->parent;
 
-  ray->memory_target[0] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ray->color.x)));
-  ray->memory_target[1] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ray->color.y)));
-  ray->memory_target[2] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ray->color.z)));
+            if ((not ancestor->parent) and ancestor->is_finalized) {
+              ancestor->memory_target[0] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.x)));
+              ancestor->memory_target[1] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.y)));
+              ancestor->memory_target[2] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.z)));
+            }
+          }
 
         }
       }
@@ -902,6 +927,7 @@ int main() {
     for (auto& thread : workers)
       thread.join();
 
+    std::cout << "total number of rays: " << ray_counter << std::endl;
 
 
     //{
