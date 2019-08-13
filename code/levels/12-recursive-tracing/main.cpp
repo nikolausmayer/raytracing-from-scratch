@@ -92,8 +92,9 @@ public:
 
 
 
-struct Ray
+class Ray
 {
+public:
   Ray(const Vector& origin, 
       const Vector& direction,
       unsigned char* memory_target=nullptr)
@@ -105,7 +106,8 @@ struct Ray
       depth(0),
       memory_target(memory_target),
       parent(nullptr),
-      is_finalized{false}
+      is_finalized{false},
+      refractive_index{1.f}
   { }
 
   Ray(const Ray& other)
@@ -180,11 +182,14 @@ struct Ray
   std::vector<Ray*> children;
   Ray* parent;
   bool is_finalized;
+
+  float refractive_index;
 };
 
-std::vector<Ray*> root_rays;
+//std::vector<Ray*> root_rays;
 std::deque<Ray*> ray_tasks_in_flight;
 std::mutex ray_tasks_in_flight__mutex;
+bool all_pushed{false};
 
 
 class RotationMatrix
@@ -249,7 +254,8 @@ class Object
       hardness(1),
       diffuse_factor(1),
       specular_factor(1),
-      roughness(0)
+      roughness(0),
+      refractive_index(1.f)
   { }
 
   virtual ~Object()
@@ -296,6 +302,7 @@ class Object
   float diffuse_factor;
   float specular_factor;
   float roughness;
+  float refractive_index;
 };
 
 
@@ -547,6 +554,8 @@ const Vector X{0.002, 0, 0};
 const Vector Y{0, 0.002, 0};
 
 const int AA_samples{8};
+const float DoF_jitter{0.f};
+const float focus_distance{4.f};
 
 
 struct World
@@ -560,208 +569,74 @@ struct World
 
 
 
-
-
-//void TraceRay(const World& world,
-//              Vector ray_origin,
-//              Vector ray_direction,
-//              unsigned char* memory) 
-//{
-//  Vector color{0, 0, 0};
-//  Vector final_color{0, 0, 0};
-//
-//  Vector ray_hit_at;
-//  Vector ray_bounced_direction;
-//  Vector normal;
-//  float distance_to_hit;
-//  float reflectivity_at_hit;
-//  float ray_energy_left = 1.f;
-//  float hardness_at_hit;
-//  float diffuse_factor_at_hit;
-//  float specular_factor_at_hit;
-//
-//  for (int bounce = 0; bounce <= 100; ++bounce) {
-//    bool an_object_was_hit{false};
-//    bool sky_was_hit{false};
-//    float min_hit_distance{std::numeric_limits<float>::max()};
-//    Object* closest_object_ptr{nullptr};
-//
-//    for (const auto& object : world.scene_objects) {
-//      if (object->is_hit_by_ray(ray_origin,
-//                                ray_direction,
-//                                ray_hit_at,
-//                                ray_bounced_direction,
-//                                distance_to_hit,
-//                                color,
-//                                reflectivity_at_hit,
-//                                hardness_at_hit,
-//                                diffuse_factor_at_hit,
-//                                specular_factor_at_hit,
-//                                normal)) {
-//        an_object_was_hit = true;
-//        if (distance_to_hit < min_hit_distance) {
-//          min_hit_distance = distance_to_hit;
-//          closest_object_ptr = object;
-//        }
-//      }
-//    }
-//
-//    if (an_object_was_hit and closest_object_ptr) {
-//      closest_object_ptr->is_hit_by_ray(ray_origin,
-//                                        ray_direction,
-//                                        ray_hit_at,
-//                                        ray_bounced_direction,
-//                                        distance_to_hit,
-//                                        color,
-//                                        reflectivity_at_hit,
-//                                        hardness_at_hit,
-//                                        diffuse_factor_at_hit,
-//                                        specular_factor_at_hit,
-//                                        normal);
-//      ray_origin = ray_hit_at;
-//      ray_direction = ray_bounced_direction;
-//    } else {
-//      if (ray_direction.y < 0) {
-//        color = get_ground_color(ray_origin, ray_direction, ray_hit_at);
-//        normal = {0, 1, 0};
-//        ray_bounced_direction = !(ray_direction+!normal*(-ray_direction%normal)*2);
-//        ray_origin = ray_hit_at;
-//        ray_direction = ray_bounced_direction;
-//
-//        reflectivity_at_hit = 0.f;
-//        hardness_at_hit = 0;
-//        diffuse_factor_at_hit = 0.8;
-//        specular_factor_at_hit = 0;
-//      } else {
-//        color = get_sky_color(ray_direction);
-//        reflectivity_at_hit = 0.f;
-//        hardness_at_hit = 0;
-//        specular_factor_at_hit = 0;
-//        sky_was_hit = true;
-//      }
-//    }
-//
-//
-//    const Vector light_at{  0+random_offset()*30, 
-//                          100,
-//                            0+random_offset()*30};
-//    const Vector light_color{255,255,255};
-//
-//    bool point_is_directly_lit{true};
-//    for (const auto& object : world.scene_objects) {
-//      Vector a,b,d,i;
-//      float c,e,f,g,h;
-//      if (object->is_hit_by_ray(ray_hit_at,
-//                                !(light_at - ray_hit_at), 
-//                                a,b,c,d,e,f,g,h,i)) {
-//        point_is_directly_lit = false;
-//        break;
-//      }
-//    }
-//
-//    if (not sky_was_hit) {
-//      const float ambient_light{0.3f};
-//      if (point_is_directly_lit) {
-//        const float diffuse_light{std::max(0.f, normal % !(light_at - ray_hit_at))};
-//        const float specular_factor{std::max(0.f, !(light_at - ray_hit_at) % ray_direction)};
-//        color = color * ambient_light +
-//                color * diffuse_light * diffuse_factor_at_hit +
-//                light_color * std::pow(specular_factor, hardness_at_hit) * specular_factor_at_hit;
-//      } else {
-//        color = color * ambient_light;
-//      }
-//    }
-//
-//
-//    final_color = final_color + (color*(ray_energy_left*(1-reflectivity_at_hit)));
-//    ray_energy_left *= reflectivity_at_hit;
-//    if (ray_energy_left <= 0)
-//      break;
-//  }  /// <-- bounce loop end
-//
-//  memory[0] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,final_color.x)));
-//  memory[1] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,final_color.y)));
-//  memory[2] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,final_color.z)));
-//}
-
-
-
 void TraceRayStep(const World& world,
                   Ray* ray) 
 {
-  //for (int bounce = 0; bounce <= 100; ++bounce) {
-    bool an_object_was_hit{false};
-    bool sky_was_hit{false};
-    float min_hit_distance{std::numeric_limits<float>::max()};
-    Object* closest_object_ptr{nullptr};
+  /**
+   * TODO limit trace bounces
+   */
+  bool an_object_was_hit{false};
+  bool sky_was_hit{false};
+  float min_hit_distance{std::numeric_limits<float>::max()};
+  Object* closest_object_ptr{nullptr};
 
-    for (const auto& object : world.scene_objects) {
-      if (object->is_hit_by_ray(ray)) {
-        an_object_was_hit = true;
-        if (ray->hit_distance < min_hit_distance) {
-          min_hit_distance = ray->hit_distance;
-          closest_object_ptr = object;
-        }
+  for (const auto& object : world.scene_objects) {
+    if (object->is_hit_by_ray(ray)) {
+      an_object_was_hit = true;
+      if (ray->hit_distance < min_hit_distance) {
+        min_hit_distance = ray->hit_distance;
+        closest_object_ptr = object;
       }
     }
+  }
 
-    if (an_object_was_hit and closest_object_ptr) {
-      closest_object_ptr->trace_object(ray);
-      /// Enqueue children
-      if (ray->children.size()) {
-        ray_tasks_in_flight__mutex.lock();
-        for (auto& child : ray->children)
-          ray_tasks_in_flight.push_front(child);
-        ray_tasks_in_flight__mutex.unlock();
-      }
+  if (an_object_was_hit and closest_object_ptr) {
+    closest_object_ptr->trace_object(ray);
+    /// Enqueue children
+    if (ray->children.size()) {
+      ray_tasks_in_flight__mutex.lock();
+      for (auto& child : ray->children)
+        ray_tasks_in_flight.push_front(child);
+      ray_tasks_in_flight__mutex.unlock();
+    }
+  } else {
+    if (ray->direction.y < 0) {
+      get_ground_color(ray);
     } else {
-      if (ray->direction.y < 0) {
-        get_ground_color(ray);
-      } else {
-        get_sky_color(ray);
-        sky_was_hit = true;
-      }
+      get_sky_color(ray);
+      sky_was_hit = true;
     }
+  }
 
 
-    const Vector light_at{  0+random_offset()*30, 
-                          100,
-                            0+random_offset()*30};
-    const Vector light_color{255,255,255};
+  const Vector light_at{  0+random_offset()*30, 
+                        100,
+                          0+random_offset()*30};
+  const Vector light_color{255,255,255};
 
-    bool point_is_directly_lit{true};
-    for (const auto& object : world.scene_objects) {
-      Ray light_probe{ray->hit_at, !(light_at - ray->hit_at), 0};
-      if (object->is_hit_by_ray(&light_probe)) {
-        point_is_directly_lit = false;
-        break;
-      }
+  bool point_is_directly_lit{true};
+  for (const auto& object : world.scene_objects) {
+    Ray light_probe{ray->hit_at, !(light_at - ray->hit_at), 0};
+    if (object->is_hit_by_ray(&light_probe)) {
+      point_is_directly_lit = false;
+      break;
     }
+  }
 
-    if (not sky_was_hit) {
-      const float ambient_light{0.3f};
-      if (point_is_directly_lit) {
-        const float diffuse_light{std::max(0.f, ray->object_normal % !(light_at - ray->hit_at))};
-        const float specular_factor{std::max(0.f, !(light_at - ray->hit_at) % ray->direction)};
-        ray->color = ray->color * ambient_light +
-                ray->color * diffuse_light * ray->object_diffuse_factor +
-                light_color * std::pow(specular_factor, ray->object_hardness) * ray->object_specular_factor;
-      } else {
-        ray->color = ray->color * ambient_light;
-      }
+  if (not sky_was_hit) {
+    const float ambient_light{0.3f};
+    if (point_is_directly_lit) {
+      const float diffuse_light{std::max(0.f, ray->object_normal % !(light_at - ray->hit_at))};
+      const float specular_factor{std::max(0.f, !(light_at - ray->hit_at) % ray->direction)};
+      ray->color = ray->color * ambient_light +
+              ray->color * diffuse_light * ray->object_diffuse_factor +
+              light_color * std::pow(specular_factor, ray->object_hardness) * ray->object_specular_factor;
+    } else {
+      ray->color = ray->color * ambient_light;
     }
+  }
 
-    ray->color = ray->color * (1-ray->object_reflectivity);
-
-    //final_color = final_color + (color*(ray_energy_left*(1-reflectivity_at_hit)));
-    //ray->energy *= ray->object_reflectivity;
-    //if (ray_energy_left <= 0)
-    //  return;
-  //}  /// <-- bounce loop end
-
-  //memory[0] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,final_color.x)));
-  //memory[1] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,final_color.y)));
-  //memory[2] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,final_color.z)));
+  ray->color = ray->color * (1-ray->object_reflectivity);
 }
 
 
@@ -773,31 +648,31 @@ void Sample(const World& world, int y, int x, int sample)
                                  Z};
 
   /// Depth-of-field
-  const Vector sensor_shift{random_offset()*0.1f,
-                            random_offset()*0.1f,
+  const Vector sensor_shift{random_offset()*DoF_jitter,
+                            random_offset()*DoF_jitter,
                             0};
   ray_origin = world.camera_rotation * (ray_origin + sensor_shift);
-  ray_direction = !(ray_direction - sensor_shift*(1./4.));
+  ray_direction = !(ray_direction - sensor_shift*(1./focus_distance));
   ray_direction = world.camera_rotation * ray_direction;
 
   Ray* ray = new Ray{ray_origin, 
                      ray_direction,
          &world.raw_data[(((256-y)*512+(255+x))*AA_samples+sample)*3]};
 
-  root_rays.push_back(ray);
+  //root_rays.push_back(ray);
   ray_tasks_in_flight.push_back(ray);
-
-  //TraceRay(world,
-  //         ray_origin, 
-  //         ray_direction,
-  //         &world.raw_data[(((256-y)*512+(255+x))*AA_samples+sample)*3]);
 }
 
 void Pixel(const World& world, int y, int x)
 {
+  while (ray_tasks_in_flight.size() > 10000)
+    std::this_thread::sleep_for(std::chrono::microseconds(10));
+
+  ray_tasks_in_flight__mutex.lock();
   for (int sample = 0; sample < AA_samples; ++sample) {
     Sample(world, y, x, sample);
   }
+  ray_tasks_in_flight__mutex.unlock();
 }
 
 void Row(const World& world, int y) 
@@ -813,6 +688,7 @@ void Image(const World& world)
     std::cout << std::setw(3) << 100*(256-y+1)/512 << "%\r" << std::flush;
     Row(world, y);
   }
+  all_pushed = true;
 }
 
 
@@ -885,68 +761,58 @@ int main() {
                               0.2f*std::sin(frame/100.f*(22/7.f))};
 
 
-    ray_tasks_in_flight__mutex.lock();
-    Image(world);
-    ray_tasks_in_flight__mutex.unlock();
-
     unsigned long int ray_counter{0};
 
     std::vector<std::thread> workers;
-    workers.emplace_back(std::thread{
-      [&world, &ray_counter](){
-        while (ray_tasks_in_flight.size()) {
-          ++ray_counter;
-          Ray* ray;
-          ray_tasks_in_flight__mutex.lock();
-          try {
-            ray = ray_tasks_in_flight.front();
-          } catch (...) {
-            ray_tasks_in_flight__mutex.unlock();
-            continue;
-          }
-          ray_tasks_in_flight.pop_front();
-          ray_tasks_in_flight__mutex.unlock();
+    workers.emplace_back(std::thread{Image, world});
 
-          TraceRayStep(world, ray);
-          if (ray->try_finalize()) {
-            Ray* ancestor{ray};
-            while (ancestor->parent and ancestor->is_finalized)
-              ancestor = ancestor->parent;
+    for (size_t thread_idx = 0; thread_idx < 4; ++thread_idx) {
+      workers.emplace_back(std::thread{
+        [&world, &ray_counter](){
 
-            if ((not ancestor->parent) and ancestor->is_finalized) {
-              ancestor->memory_target[0] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.x)));
-              ancestor->memory_target[1] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.y)));
-              ancestor->memory_target[2] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.z)));
+          while (not all_pushed) {
+            while (ray_tasks_in_flight.size()) {
+              Ray* ray;
+              ray_tasks_in_flight__mutex.lock();
+              try {
+                ray = ray_tasks_in_flight.front();
+              } catch (...) {
+                ray_tasks_in_flight__mutex.unlock();
+                continue;
+              }
+              ++ray_counter;
+              ray_tasks_in_flight.pop_front();
+              ray_tasks_in_flight__mutex.unlock();
+
+              TraceRayStep(world, ray);
+              if (ray->try_finalize()) {
+                Ray* ancestor{ray};
+                while (ancestor->parent and ancestor->is_finalized)
+                  ancestor = ancestor->parent;
+
+                /// Ray done?
+                if ((not ancestor->parent) and ancestor->is_finalized) {
+                  ancestor->memory_target[0] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.x)));
+                  ancestor->memory_target[1] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.y)));
+                  ancestor->memory_target[2] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.z)));
+
+                  /// Yup, ray done. Delete!
+                  delete ancestor;
+                }
+              }
+
             }
+            std::this_thread::sleep_for(std::chrono::microseconds(10));
           }
 
         }
-      }
-    });
+      });
+    }
 
     for (auto& thread : workers)
       thread.join();
 
     std::cout << "total number of rays: " << ray_counter << std::endl;
-
-
-    //{
-    //  std::vector<std::thread> workers;
-
-    //  for (int thread_idx = 0; thread_idx < 4; ++thread_idx) {
-    //    workers.emplace_back(std::thread{
-    //      [&world, thread_idx](){
-    //        const int start{256-thread_idx*128};
-    //        const int end{256-thread_idx*128-128};
-    //        for (int y = start; y > end; --y)
-    //          Row(world, y);
-    //      }
-    //    });
-    //  }
-
-    //  for (auto& thread : workers)
-    //    thread.join();
-    //}
 
 
     std::ostringstream oss;
