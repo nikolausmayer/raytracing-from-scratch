@@ -1,5 +1,5 @@
 
-//#include <chrono>
+#include <chrono>
 #include <cmath>
 #include <deque>
 #include <fstream>
@@ -593,12 +593,12 @@ void TraceRayStep(const World& world,
   if (an_object_was_hit and closest_object_ptr) {
     closest_object_ptr->trace_object(ray);
     /// Enqueue children
-    if (ray->children.size()) {
-      ray_tasks_in_flight__mutex.lock();
-      for (auto& child : ray->children)
-        ray_tasks_in_flight.push_front(child);
-      ray_tasks_in_flight__mutex.unlock();
-    }
+    //if (ray->children.size()) {
+    //  ray_tasks_in_flight__mutex.lock();
+    //  for (auto& child : ray->children)
+    //    ray_tasks_in_flight.push_front(child);
+    //  ray_tasks_in_flight__mutex.unlock();
+    //}
   } else {
     if (ray->direction.y < 0) {
       get_ground_color(ray);
@@ -692,6 +692,62 @@ void Image(const World& world)
 }
 
 
+void worker_function(World& world, unsigned long int& ray_counter)
+{
+  std::deque<Ray*> thread_ray_queue;
+
+  while (not all_pushed) {
+    while (ray_tasks_in_flight.size() or
+           thread_ray_queue.size()) {
+      Ray* ray;
+      if (thread_ray_queue.size()) {
+        ray = thread_ray_queue.front();
+        thread_ray_queue.pop_front();
+      } else {
+        ray_tasks_in_flight__mutex.lock();
+        if (not ray_tasks_in_flight.size()) {
+          ray_tasks_in_flight__mutex.unlock();
+          continue;
+        }
+        try {
+          ray = ray_tasks_in_flight.front();
+        } catch (...) {
+          ray_tasks_in_flight__mutex.unlock();
+          continue;
+        }
+        ray_tasks_in_flight.pop_front();
+        ray_tasks_in_flight__mutex.unlock();
+      }
+      ++ray_counter;
+
+      TraceRayStep(world, ray);
+
+      if (ray->children.size()) {
+        for (auto& child : ray->children)
+          thread_ray_queue.push_front(child);
+      }
+
+      if (ray->try_finalize()) {
+        Ray* ancestor{ray};
+        while (ancestor->parent and ancestor->is_finalized)
+          ancestor = ancestor->parent;
+
+        /// Ray done?
+        if ((not ancestor->parent) and ancestor->is_finalized) {
+          ancestor->memory_target[0] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.x)));
+          ancestor->memory_target[1] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.y)));
+          ancestor->memory_target[2] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.z)));
+
+          /// Yup, ray done. Delete!
+          delete ancestor;
+        }
+      }
+
+    }
+    std::this_thread::sleep_for(std::chrono::microseconds(10));
+  }
+}
+
 
 int main() {
 
@@ -767,46 +823,7 @@ int main() {
     workers.emplace_back(std::thread{Image, world});
 
     for (size_t thread_idx = 0; thread_idx < 4; ++thread_idx) {
-      workers.emplace_back(std::thread{
-        [&world, &ray_counter](){
-
-          while (not all_pushed) {
-            while (ray_tasks_in_flight.size()) {
-              Ray* ray;
-              ray_tasks_in_flight__mutex.lock();
-              try {
-                ray = ray_tasks_in_flight.front();
-              } catch (...) {
-                ray_tasks_in_flight__mutex.unlock();
-                continue;
-              }
-              ++ray_counter;
-              ray_tasks_in_flight.pop_front();
-              ray_tasks_in_flight__mutex.unlock();
-
-              TraceRayStep(world, ray);
-              if (ray->try_finalize()) {
-                Ray* ancestor{ray};
-                while (ancestor->parent and ancestor->is_finalized)
-                  ancestor = ancestor->parent;
-
-                /// Ray done?
-                if ((not ancestor->parent) and ancestor->is_finalized) {
-                  ancestor->memory_target[0] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.x)));
-                  ancestor->memory_target[1] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.y)));
-                  ancestor->memory_target[2] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.z)));
-
-                  /// Yup, ray done. Delete!
-                  delete ancestor;
-                }
-              }
-
-            }
-            std::this_thread::sleep_for(std::chrono::microseconds(10));
-          }
-
-        }
-      });
+      workers.emplace_back(std::thread{worker_function, std::ref(world), std::ref(ray_counter)});
     }
 
     for (auto& thread : workers)
