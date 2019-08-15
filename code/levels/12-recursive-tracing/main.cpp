@@ -665,21 +665,21 @@ void Sample(const World& world, int y, int x, int sample)
 
 void Pixel(const World& world, int y, int x)
 {
-  while (ray_tasks_in_flight.size() > 10000)
-    std::this_thread::sleep_for(std::chrono::microseconds(10));
-
-  ray_tasks_in_flight__mutex.lock();
   for (int sample = 0; sample < AA_samples; ++sample) {
     Sample(world, y, x, sample);
   }
-  ray_tasks_in_flight__mutex.unlock();
 }
 
 void Row(const World& world, int y) 
 {
+  while (ray_tasks_in_flight.size() > 10000)
+    std::this_thread::sleep_for(std::chrono::microseconds(10));
+
+  ray_tasks_in_flight__mutex.lock();
   for (int x = -255; x <= 256; ++x) {
     Pixel(world, y, x);
   }
+  ray_tasks_in_flight__mutex.unlock();
 }
 
 void Image(const World& world) 
@@ -704,19 +704,26 @@ void worker_function(World& world, unsigned long int& ray_counter)
         ray = thread_ray_queue.front();
         thread_ray_queue.pop_front();
       } else {
-        ray_tasks_in_flight__mutex.lock();
+        //ray_tasks_in_flight__mutex.lock();
+        std::lock_guard<std::mutex> LOCK(ray_tasks_in_flight__mutex);
         if (not ray_tasks_in_flight.size()) {
-          ray_tasks_in_flight__mutex.unlock();
+          //ray_tasks_in_flight__mutex.unlock();
           continue;
         }
-        try {
-          ray = ray_tasks_in_flight.front();
-        } catch (...) {
-          ray_tasks_in_flight__mutex.unlock();
-          continue;
+        for (size_t i = 0; i < 10; ++i) {
+          if (not ray_tasks_in_flight.size())
+            break;
+          try {
+            ray = ray_tasks_in_flight.front();
+          } catch (...) {
+            //ray_tasks_in_flight__mutex.unlock();
+            break;
+          }
+          thread_ray_queue.push_back(ray);
+          ray_tasks_in_flight.pop_front();
         }
-        ray_tasks_in_flight.pop_front();
-        ray_tasks_in_flight__mutex.unlock();
+        //ray_tasks_in_flight__mutex.unlock();
+        continue;
       }
       ++ray_counter;
 
@@ -822,7 +829,7 @@ int main() {
     std::vector<std::thread> workers;
     workers.emplace_back(std::thread{Image, world});
 
-    for (size_t thread_idx = 0; thread_idx < 4; ++thread_idx) {
+    for (size_t thread_idx = 0; thread_idx < 2; ++thread_idx) {
       workers.emplace_back(std::thread{worker_function, std::ref(world), std::ref(ray_counter)});
     }
 
