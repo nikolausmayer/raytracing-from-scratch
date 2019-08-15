@@ -186,7 +186,6 @@ public:
   float refractive_index;
 };
 
-//std::vector<Ray*> root_rays;
 std::deque<Ray*> ray_tasks_in_flight;
 std::mutex ray_tasks_in_flight__mutex;
 bool all_pushed{false};
@@ -323,13 +322,15 @@ public:
   bool is_hit_by_ray(Ray* ray) const
   {
     const Vector p = center - ray->origin;
-    const float threshold = std::sqrt(p%p - radius*radius);
+    //const float threshold = std::sqrt(p%p - radius*radius);
+    const float threshold_squared = p%p - radius*radius;
     const float b = p % ray->direction;
 
-    if (b > threshold) {
+    if (b*b > threshold_squared) {
       /// HIT
-      const float s = std::sqrt(p % p - b * b);
-      const float t = std::sqrt(radius * radius - s * s);
+      //const float s = std::sqrt(p % p - b * b);
+      const float s_squared = p % p - b * b;
+      const float t = std::sqrt(radius * radius - s_squared);
       ray->hit_distance = b - t;
 
       if (ray->hit_distance < 1e-3)
@@ -410,6 +411,26 @@ public:
     if (normal % ray->direction >= 0)
       return false;
 
+    /// Moeller-Trumbore algorithm 
+    /// https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle
+    //{
+    //  const Vector pvec{ray->direction^v};
+    //  const float det{u%pvec};
+    //  if (det < 1e-4) return false;
+    //  if (std::abs(det) < 1e-4) return false;
+    //  const float idet{1/det};
+    //  const Vector tvec{ray->origin - p0};
+    //  const float Xu_factor{tvec%pvec * idet};
+    //  if (Xu_factor < 0 or Xu_factor > 1) return false;
+    //  const Vector qvec{tvec^u};
+    //  const float Xv_factor{ray->direction%qvec * idet};
+    //  if (Xv_factor < 0 or Xu_factor+Xv_factor > 1) return false;
+    //  /// HIT
+    //  ray->hit_distance = v%qvec * idet;
+    //  if (ray->hit_distance < 1e-3) return false;
+    //  return true;
+    //}
+
 		const float& pox{p0.x};
 		const float& poy{p0.y};
 		const float& poz{p0.z};
@@ -426,19 +447,17 @@ public:
 		const float& oy{ray->origin.y};
 		const float& oz{ray->origin.z};
 		const float u_factor = (-(ox - pox)*(ry*vz - rz*vy) + (oy - poy)*(rx*vz - rz*vx) - (oz - poz)*(rx*vy - ry*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
+		if (u_factor < 0 or u_factor > 1) 
+      return false;
 		const float v_factor = ((ox - pox)*(ry*uz - rz*uy) - (oy - poy)*(rx*uz - rz*ux) + (oz - poz)*(rx*uy - ry*ux))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
+		if (v_factor < 0 or u_factor+v_factor > 1) 
+      return false;
 		const float ray_factor = (-(ox - pox)*(uy*vz - uz*vy) + (oy - poy)*(ux*vz - uz*vx) - (oz - poz)*(ux*vy - uy*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
 
-		if (u_factor < 0 or u_factor > 1 or
-				v_factor < 0 or v_factor > 1 or
-				u_factor+v_factor > 1 or
-				ray_factor < 0)
+		if (ray_factor < 1e-3)
 			return false;
     
-		ray->hit_distance = (ray->direction*ray_factor).length();
-
-    if (ray->hit_distance < 1e-3)
-      return false;
+		ray->hit_distance = ray_factor;
 
 		return true;
   }
@@ -464,7 +483,7 @@ public:
 		const float v_factor = ((ox - pox)*(ry*uz - rz*uy) - (oy - poy)*(rx*uz - rz*ux) + (oz - poz)*(rx*uy - ry*ux))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
 		const float ray_factor = (-(ox - pox)*(uy*vz - uz*vy) + (oy - poy)*(ux*vz - uz*vx) - (oz - poz)*(ux*vy - uy*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
 
-		ray->hit_distance = (ray->direction*ray_factor).length();
+		ray->hit_distance = ray_factor;
 
     const Vector outgoing_ray_origin{p0 + u*u_factor + v*v_factor};
 		Vector outgoing_ray_direction{!(ray->direction + 
@@ -592,13 +611,6 @@ void TraceRayStep(const World& world,
 
   if (an_object_was_hit and closest_object_ptr) {
     closest_object_ptr->trace_object(ray);
-    /// Enqueue children
-    //if (ray->children.size()) {
-    //  ray_tasks_in_flight__mutex.lock();
-    //  for (auto& child : ray->children)
-    //    ray_tasks_in_flight.push_front(child);
-    //  ray_tasks_in_flight__mutex.unlock();
-    //}
   } else {
     if (ray->direction.y < 0) {
       get_ground_color(ray);
@@ -615,8 +627,8 @@ void TraceRayStep(const World& world,
   const Vector light_color{255,255,255};
 
   bool point_is_directly_lit{true};
+  Ray light_probe{ray->hit_at, !(light_at - ray->hit_at), 0};
   for (const auto& object : world.scene_objects) {
-    Ray light_probe{ray->hit_at, !(light_at - ray->hit_at), 0};
     if (object->is_hit_by_ray(&light_probe)) {
       point_is_directly_lit = false;
       break;
@@ -659,7 +671,6 @@ void Sample(const World& world, int y, int x, int sample)
                      ray_direction,
          &world.raw_data[(((256-y)*512+(255+x))*AA_samples+sample)*3]};
 
-  //root_rays.push_back(ray);
   ray_tasks_in_flight.push_back(ray);
 }
 
@@ -673,7 +684,7 @@ void Pixel(const World& world, int y, int x)
 void Row(const World& world, int y) 
 {
   while (ray_tasks_in_flight.size() > 10000)
-    std::this_thread::sleep_for(std::chrono::microseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
   ray_tasks_in_flight__mutex.lock();
   for (int x = -255; x <= 256; ++x) {
@@ -704,25 +715,20 @@ void worker_function(World& world, unsigned long int& ray_counter)
         ray = thread_ray_queue.front();
         thread_ray_queue.pop_front();
       } else {
-        //ray_tasks_in_flight__mutex.lock();
+        const size_t PREFETCH{50};
         std::lock_guard<std::mutex> LOCK(ray_tasks_in_flight__mutex);
-        if (not ray_tasks_in_flight.size()) {
-          //ray_tasks_in_flight__mutex.unlock();
+        if (not ray_tasks_in_flight.size()) 
           continue;
-        }
-        for (size_t i = 0; i < 10; ++i) {
-          if (not ray_tasks_in_flight.size())
-            break;
+        const size_t pre{std::min(ray_tasks_in_flight.size(), PREFETCH)};
+        for (size_t i = 0; i < pre; ++i) {
           try {
             ray = ray_tasks_in_flight.front();
           } catch (...) {
-            //ray_tasks_in_flight__mutex.unlock();
             break;
           }
           thread_ray_queue.push_back(ray);
           ray_tasks_in_flight.pop_front();
         }
-        //ray_tasks_in_flight__mutex.unlock();
         continue;
       }
       ++ray_counter;
@@ -751,7 +757,7 @@ void worker_function(World& world, unsigned long int& ray_counter)
       }
 
     }
-    std::this_thread::sleep_for(std::chrono::microseconds(10));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 }
 
@@ -829,7 +835,7 @@ int main() {
     std::vector<std::thread> workers;
     workers.emplace_back(std::thread{Image, world});
 
-    for (size_t thread_idx = 0; thread_idx < 2; ++thread_idx) {
+    for (size_t thread_idx = 0; thread_idx < 4; ++thread_idx) {
       workers.emplace_back(std::thread{worker_function, std::ref(world), std::ref(ray_counter)});
     }
 
