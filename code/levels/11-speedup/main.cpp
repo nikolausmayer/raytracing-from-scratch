@@ -607,7 +607,7 @@ void Image(const World& world)
 
 int main() {
 
-  for (int frame = 0; frame < 200; ++frame) {
+  for (int frame = 0; frame < 1; ++frame) {
 
     World world;
 
@@ -678,11 +678,13 @@ int main() {
     {
       std::vector<std::thread> workers;
 
-      for (int thread_idx = 0; thread_idx < 4; ++thread_idx) {
+      const int THREADS{4};
+      const int STEP{static_cast<size_t>(512/THREADS)};
+      for (int thread_idx = 0; thread_idx < THREADS; ++thread_idx) {
         workers.emplace_back(std::thread{
-          [&world, thread_idx](){
-            const int start{256-thread_idx*128};
-            const int end{256-thread_idx*128-128};
+          [&world, thread_idx, STEP](){
+            const int start{std::min(256, 256-thread_idx*STEP)};
+            const int end{std::max(-255, 256-thread_idx*STEP-STEP)};
             for (int y = start; y > end; --y)
               Row(world, y);
           }
