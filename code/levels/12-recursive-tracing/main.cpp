@@ -1,4 +1,5 @@
 
+#include <atomic>
 #include <chrono>
 #include <cmath>
 #include <deque>
@@ -97,7 +98,7 @@ class Ray
 public:
   Ray(const Vector& origin, 
       const Vector& direction,
-      unsigned char* memory_target=nullptr)
+      unsigned char* __restrict__ memory_target=nullptr)
     : origin(origin),
       direction(direction),
       hit_at(0,0,0),
@@ -186,10 +187,11 @@ public:
   float refractive_index;
 };
 
+
 std::deque<Ray*> ray_tasks_in_flight;
 std::mutex ray_tasks_in_flight__mutex;
 bool all_pushed{false};
-
+std::atomic<int> ray_counter;
 
 class RotationMatrix
 {
@@ -683,6 +685,7 @@ void Pixel(const World& world, int y, int x)
 
 void Row(const World& world, int y) 
 {
+  /// CRITICAL to avoid RAM exhaustion!
   while (ray_tasks_in_flight.size() > 10000)
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
 
@@ -703,7 +706,7 @@ void Image(const World& world)
 }
 
 
-void worker_function(World& world, unsigned long int& ray_counter)
+void worker_function(const World& world, int thread_idx)
 {
   std::deque<Ray*> thread_ray_queue;
 
@@ -715,7 +718,7 @@ void worker_function(World& world, unsigned long int& ray_counter)
         ray = thread_ray_queue.front();
         thread_ray_queue.pop_front();
       } else {
-        const size_t PREFETCH{50};
+        const size_t PREFETCH{1000};
         std::lock_guard<std::mutex> LOCK(ray_tasks_in_flight__mutex);
         if (not ray_tasks_in_flight.size()) 
           continue;
@@ -747,6 +750,13 @@ void worker_function(World& world, unsigned long int& ray_counter)
 
         /// Ray done?
         if ((not ancestor->parent) and ancestor->is_finalized) {
+          //if (thread_idx == 0)
+          //  ancestor->memory_target[0] = 255;
+          //else if (thread_idx == 1) 
+          //  ancestor->memory_target[1] = 255;
+          //else if (thread_idx == 2) 
+          //  ancestor->memory_target[2] = 255;
+
           ancestor->memory_target[0] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.x)));
           ancestor->memory_target[1] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.y)));
           ancestor->memory_target[2] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.z)));
@@ -830,13 +840,11 @@ int main() {
                               0.2f*std::sin(frame/100.f*(22/7.f))};
 
 
-    unsigned long int ray_counter{0};
-
     std::vector<std::thread> workers;
     workers.emplace_back(std::thread{Image, world});
 
-    for (size_t thread_idx = 0; thread_idx < 4; ++thread_idx) {
-      workers.emplace_back(std::thread{worker_function, std::ref(world), std::ref(ray_counter)});
+    for (size_t thread_idx = 0; thread_idx < 3; ++thread_idx) {
+      workers.emplace_back(std::thread{worker_function, std::ref(world), thread_idx});
     }
 
     for (auto& thread : workers)
