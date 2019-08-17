@@ -188,6 +188,9 @@ public:
 };
 
 
+std::deque<Ray const*> ray_tasks_for_deletion;
+std::mutex ray_tasks_for_deletion__mutex;
+
 std::deque<Ray*> ray_tasks_in_flight;
 std::mutex ray_tasks_in_flight__mutex;
 bool all_pushed{false};
@@ -533,6 +536,7 @@ void get_ground_color(Ray* ray)
   static unsigned char* texture_data{nullptr};
   const int tex_w{600};
   const int tex_h{400};
+  /// TODO make texture read thread-safe
   if (not texture_data) {
     std::ifstream texture("texture.ppm", std::ios::binary);
     texture_data = new unsigned char[tex_w * tex_h * 3];
@@ -574,7 +578,7 @@ const Vector X{0.002, 0, 0};
 /// Y = up
 const Vector Y{0, 0.002, 0};
 
-const int AA_samples{8};
+const int AA_samples{512};
 const float DoF_jitter{0.f};
 const float focus_distance{4.f};
 
@@ -593,13 +597,13 @@ struct World
 void TraceRayStep(const World& world,
                   Ray* ray) 
 {
-  /**
-   * TODO limit trace bounces
-   */
+  if (ray->depth > 100)
+    return;
+
   bool an_object_was_hit{false};
   bool sky_was_hit{false};
   float min_hit_distance{std::numeric_limits<float>::max()};
-  Object* closest_object_ptr{nullptr};
+  Object const* closest_object_ptr{nullptr};
 
   for (const auto& object : world.scene_objects) {
     if (object->is_hit_by_ray(ray)) {
@@ -643,8 +647,8 @@ void TraceRayStep(const World& world,
       const float diffuse_light{std::max(0.f, ray->object_normal % !(light_at - ray->hit_at))};
       const float specular_factor{std::max(0.f, !(light_at - ray->hit_at) % ray->direction)};
       ray->color = ray->color * ambient_light +
-              ray->color * diffuse_light * ray->object_diffuse_factor +
-              light_color * std::pow(specular_factor, ray->object_hardness) * ray->object_specular_factor;
+                   ray->color * diffuse_light * ray->object_diffuse_factor +
+                   light_color * std::pow(specular_factor, ray->object_hardness) * ray->object_specular_factor;
     } else {
       ray->color = ray->color * ambient_light;
     }
@@ -669,9 +673,9 @@ void Sample(const World& world, int y, int x, int sample)
   ray_direction = !(ray_direction - sensor_shift*(1./focus_distance));
   ray_direction = world.camera_rotation * ray_direction;
 
-  Ray* ray = new Ray{ray_origin, 
-                     ray_direction,
-         &world.raw_data[(((256-y)*512+(255+x))*AA_samples+sample)*3]};
+  Ray* const ray = new Ray{ray_origin, 
+                           ray_direction,
+                           &world.raw_data[(((256-y)*512+(255+x))*AA_samples+sample)*3]};
 
   ray_tasks_in_flight.push_back(ray);
 }
@@ -706,9 +710,26 @@ void Image(const World& world)
 }
 
 
+void cleanup_worker()
+{
+  /// TODO account for last rays-in-flight
+  while (not all_pushed) {
+    if (ray_tasks_for_deletion.size()) {
+      std::lock_guard<std::mutex> LOCK(ray_tasks_for_deletion__mutex);
+      for (auto& ray : ray_tasks_for_deletion)
+        delete ray;
+      ray_tasks_for_deletion.clear();
+    } else {
+      std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    }
+  }
+}
+
+
 void worker_function(const World& world, int thread_idx)
 {
   std::deque<Ray*> thread_ray_queue;
+  std::deque<Ray const*> thread_delete_ray_queue;
 
   while (not all_pushed) {
     while (ray_tasks_in_flight.size() or
@@ -740,11 +761,13 @@ void worker_function(const World& world, int thread_idx)
 
       if (ray->children.size()) {
         for (auto& child : ray->children)
+          /// All child rays processed by same thread;
+          /// makes memory management easier
           thread_ray_queue.push_front(child);
       }
 
       if (ray->try_finalize()) {
-        Ray* ancestor{ray};
+        Ray const* ancestor{ray};
         while (ancestor->parent and ancestor->is_finalized)
           ancestor = ancestor->parent;
 
@@ -762,10 +785,17 @@ void worker_function(const World& world, int thread_idx)
           ancestor->memory_target[2] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.z)));
 
           /// Yup, ray done. Delete!
-          delete ancestor;
+          thread_delete_ray_queue.push_back(ancestor);
+          //delete ancestor;
         }
       }
 
+      if (thread_delete_ray_queue.size() >= 1000) {
+        std::lock_guard<std::mutex> LOCK(ray_tasks_for_deletion__mutex);
+        for (auto& r : thread_delete_ray_queue)
+          ray_tasks_for_deletion.push_back(r);
+        thread_delete_ray_queue.clear();
+      }
     }
     std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
@@ -842,6 +872,7 @@ int main() {
 
     std::vector<std::thread> workers;
     workers.emplace_back(std::thread{Image, world});
+    workers.emplace_back(std::thread{cleanup_worker});
 
     for (size_t thread_idx = 0; thread_idx < 3; ++thread_idx) {
       workers.emplace_back(std::thread{worker_function, std::ref(world), thread_idx});
