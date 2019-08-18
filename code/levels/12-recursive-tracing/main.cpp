@@ -426,11 +426,11 @@ public:
       //if (std::abs(det) < 1e-4) return false;
       const float idet{1/det};
       const Vector tvec{ray->origin - p0};
-      const float Xu_factor{tvec%pvec * idet};
-      if (Xu_factor < 0 or Xu_factor > 1) return false;
+      const float u_factor{tvec%pvec * idet};
+      if (u_factor < 0 or u_factor > 1) return false;
       const Vector qvec{tvec^u};
-      const float Xv_factor{ray->direction%qvec * idet};
-      if (Xv_factor < 0 or Xu_factor+Xv_factor > 1) return false;
+      const float v_factor{ray->direction%qvec * idet};
+      if (v_factor < 0 or u_factor+v_factor > 1) return false;
       /// HIT
       ray->hit_distance = v%qvec * idet;
       if (ray->hit_distance < 1e-3) return false;
@@ -474,9 +474,7 @@ public:
     const float det{u%pvec};
     const float idet{1/det};
     const Vector tvec{ray->origin - p0};
-    const float Xu_factor{tvec%pvec * idet};
     const Vector qvec{tvec^u};
-    const float Xv_factor{ray->direction%qvec * idet};
     /// HIT
     ray->hit_distance = v%qvec * idet;
 
@@ -590,7 +588,9 @@ const Vector X{0.002, 0, 0};
 /// Y = up
 const Vector Y{0, 0.002, 0};
 
-const int AA_samples{64};
+
+const int THREADS{1};
+const int AA_samples{512};
 const float DoF_jitter{0.f};
 const float focus_distance{4.f};
 
@@ -740,32 +740,80 @@ void cleanup_worker()
 
 void worker_function(const World& world, int thread_idx)
 {
-  std::deque<Ray*> thread_ray_queue;
-  std::deque<Ray const*> thread_delete_ray_queue;
+  const int STEP{static_cast<size_t>(512/THREADS)};
+  const int y_start{std::min(256, 256-thread_idx*STEP)};
+  const int y_end{std::max(-255, 256-thread_idx*STEP-STEP)};
 
-  while (not all_pushed) {
-    while (ray_tasks_in_flight.size() or
-           thread_ray_queue.size()) {
+  std::deque<Ray*> thread_ray_queue;
+  //std::deque<Ray const*> thread_delete_ray_queue;
+
+  int x{-255};
+  int y{y_start};
+  int sample{-1};
+
+  //while (not all_pushed) {
+  while (true) {
+    //if (x > 256 or y <= y_end or sample >= AA_samples)
+    //  std::cout << x << " " << y << " " << sample << std::endl;
+    //while (ray_tasks_in_flight.size() or
+    //       thread_ray_queue.size()) {
+    {
       Ray* ray;
       if (thread_ray_queue.size()) {
         ray = thread_ray_queue.front();
         thread_ray_queue.pop_front();
       } else {
-        const size_t PREFETCH{1000};
-        std::lock_guard<std::mutex> LOCK(ray_tasks_in_flight__mutex);
-        if (not ray_tasks_in_flight.size()) 
-          continue;
-        const size_t pre{std::min(ray_tasks_in_flight.size(), PREFETCH)};
-        for (size_t i = 0; i < pre; ++i) {
-          try {
-            ray = ray_tasks_in_flight.front();
-          } catch (...) {
-            break;
+        {
+          ++sample;
+          if (sample == AA_samples) {
+            ++x;
+            sample = 0;
           }
-          thread_ray_queue.push_back(ray);
-          ray_tasks_in_flight.pop_front();
+          if (x > 256) {
+            --y;
+            x = -255;
+          }
+          if (y == y_end)
+            break;
         }
-        continue;
+
+        {
+          Vector ray_origin{0, 1, -4};
+          Vector ray_direction = !Vector{X*(x-0.5f+random_offset()) + 
+                                         Y*(y-0.5f+random_offset()) +
+                                         Z};
+          /// Depth-of-field
+          const Vector sensor_shift{random_offset()*DoF_jitter,
+                                    random_offset()*DoF_jitter,
+                                    0};
+          ray_origin = world.camera_rotation * (ray_origin + sensor_shift);
+          ray_direction = !(ray_direction - sensor_shift*(1./focus_distance));
+          ray_direction = world.camera_rotation * ray_direction;
+          ray = new Ray{ray_origin, 
+                        ray_direction,
+                        &world.raw_data[(((256-y)*512+(255+x))*AA_samples+sample)*3]};
+        }
+
+        //std::cout << (((256-y)*512+(255+x))*AA_samples+sample)*3 << " " 
+        //          << ((((256-y)*512+(255+x))*AA_samples+sample)*3 > 512*512*AA_samples*3 ? "NOOO" : "")
+        //          << std::endl;
+
+
+        //const size_t PREFETCH{1000};
+        //std::lock_guard<std::mutex> LOCK(ray_tasks_in_flight__mutex);
+        //if (not ray_tasks_in_flight.size()) 
+        //  continue;
+        //const size_t pre{std::min(ray_tasks_in_flight.size(), PREFETCH)};
+        //for (size_t i = 0; i < pre; ++i) {
+        //  try {
+        //    ray = ray_tasks_in_flight.front();
+        //  } catch (...) {
+        //    break;
+        //  }
+        //  thread_ray_queue.push_back(ray);
+        //  ray_tasks_in_flight.pop_front();
+        //}
+        //continue;
       }
       ++ray_counter;
 
@@ -797,19 +845,19 @@ void worker_function(const World& world, int thread_idx)
           ancestor->memory_target[2] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.z)));
 
           /// Yup, ray done. Delete!
-          thread_delete_ray_queue.push_back(ancestor);
-          //delete ancestor;
+          //thread_delete_ray_queue.push_back(ancestor);
+          delete ancestor;
         }
       }
 
-      if (thread_delete_ray_queue.size() >= 1000) {
-        std::lock_guard<std::mutex> LOCK(ray_tasks_for_deletion__mutex);
-        for (auto& r : thread_delete_ray_queue)
-          ray_tasks_for_deletion.push_back(r);
-        thread_delete_ray_queue.clear();
-      }
+      //if (thread_delete_ray_queue.size() >= 1000) {
+      //  std::lock_guard<std::mutex> LOCK(ray_tasks_for_deletion__mutex);
+      //  for (auto& r : thread_delete_ray_queue)
+      //    ray_tasks_for_deletion.push_back(r);
+      //  thread_delete_ray_queue.clear();
+      //}
     }
-    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    //std::this_thread::sleep_for(std::chrono::milliseconds(1));
   }
 }
 
@@ -883,10 +931,10 @@ int main() {
 
 
     std::vector<std::thread> workers;
-    workers.emplace_back(std::thread{Image, world});
-    workers.emplace_back(std::thread{cleanup_worker});
+    //workers.emplace_back(std::thread{Image, world});
+    //workers.emplace_back(std::thread{cleanup_worker});
 
-    for (size_t thread_idx = 0; thread_idx < 3; ++thread_idx) {
+    for (size_t thread_idx = 0; thread_idx < THREADS; ++thread_idx) {
       workers.emplace_back(std::thread{worker_function, std::ref(world), thread_idx});
     }
 
