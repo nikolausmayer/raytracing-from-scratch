@@ -418,79 +418,91 @@ public:
 
     /// Moeller-Trumbore algorithm 
     /// https://www.scratchapixel.com/lessons/3d-basic-rendering/ray-tracing-rendering-a-triangle
-    //{
-    //  const Vector pvec{ray->direction^v};
-    //  const float det{u%pvec};
-    //  if (det < 1e-4) return false;
-    //  if (std::abs(det) < 1e-4) return false;
-    //  const float idet{1/det};
-    //  const Vector tvec{ray->origin - p0};
-    //  const float Xu_factor{tvec%pvec * idet};
-    //  if (Xu_factor < 0 or Xu_factor > 1) return false;
-    //  const Vector qvec{tvec^u};
-    //  const float Xv_factor{ray->direction%qvec * idet};
-    //  if (Xv_factor < 0 or Xu_factor+Xv_factor > 1) return false;
-    //  /// HIT
-    //  ray->hit_distance = v%qvec * idet;
-    //  if (ray->hit_distance < 1e-3) return false;
-    //  return true;
-    //}
+    {
+      const Vector pvec{ray->direction^v};
+      const float det{u%pvec};
+      if (det > -1e-4) return false;
+      //if (det > 1e-4) return false;
+      //if (std::abs(det) < 1e-4) return false;
+      const float idet{1/det};
+      const Vector tvec{ray->origin - p0};
+      const float Xu_factor{tvec%pvec * idet};
+      if (Xu_factor < 0 or Xu_factor > 1) return false;
+      const Vector qvec{tvec^u};
+      const float Xv_factor{ray->direction%qvec * idet};
+      if (Xv_factor < 0 or Xu_factor+Xv_factor > 1) return false;
+      /// HIT
+      ray->hit_distance = v%qvec * idet;
+      if (ray->hit_distance < 1e-3) return false;
+      return true;
+    }
 
-		const float& pox{p0.x};
-		const float& poy{p0.y};
-		const float& poz{p0.z};
-		const float& ux{u.x};
-		const float& uy{u.y};
-		const float& uz{u.z};
-		const float& vx{v.x};
-		const float& vy{v.y};
-		const float& vz{v.z};
-		const float& rx{ray->direction.x};
-		const float& ry{ray->direction.y};
-		const float& rz{ray->direction.z};
-		const float& ox{ray->origin.x};
-		const float& oy{ray->origin.y};
-		const float& oz{ray->origin.z};
-		const float u_factor = (-(ox - pox)*(ry*vz - rz*vy) + (oy - poy)*(rx*vz - rz*vx) - (oz - poz)*(rx*vy - ry*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
-		if (u_factor < 0 or u_factor > 1) 
-      return false;
-		const float v_factor = ((ox - pox)*(ry*uz - rz*uy) - (oy - poy)*(rx*uz - rz*ux) + (oz - poz)*(rx*uy - ry*ux))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
-		if (v_factor < 0 or u_factor+v_factor > 1) 
-      return false;
-		const float ray_factor = (-(ox - pox)*(uy*vz - uz*vy) + (oy - poy)*(ux*vz - uz*vx) - (oz - poz)*(ux*vy - uy*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
+		//const float& pox{p0.x};
+		//const float& poy{p0.y};
+		//const float& poz{p0.z};
+		//const float& ux{u.x};
+		//const float& uy{u.y};
+		//const float& uz{u.z};
+		//const float& vx{v.x};
+		//const float& vy{v.y};
+		//const float& vz{v.z};
+		//const float& rx{ray->direction.x};
+		//const float& ry{ray->direction.y};
+		//const float& rz{ray->direction.z};
+		//const float& ox{ray->origin.x};
+		//const float& oy{ray->origin.y};
+		//const float& oz{ray->origin.z};
+		//const float u_factor = (-(ox - pox)*(ry*vz - rz*vy) + (oy - poy)*(rx*vz - rz*vx) - (oz - poz)*(rx*vy - ry*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
+		//if (u_factor < 0 or u_factor > 1) 
+    //  return false;
+		//const float v_factor = ((ox - pox)*(ry*uz - rz*uy) - (oy - poy)*(rx*uz - rz*ux) + (oz - poz)*(rx*uy - ry*ux))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
+		//if (v_factor < 0 or u_factor+v_factor > 1) 
+    //  return false;
+		//const float ray_factor = (-(ox - pox)*(uy*vz - uz*vy) + (oy - poy)*(ux*vz - uz*vx) - (oz - poz)*(ux*vy - uy*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
 
-		if (ray_factor < 1e-3)
-			return false;
-    
-		ray->hit_distance = ray_factor;
+		//if (ray_factor < 1e-3)
+		//	return false;
+    //
+		//ray->hit_distance = ray_factor;
 
-		return true;
+		//return true;
   }
 
   void trace_object(Ray* ray) const
   {
-		const float& pox{p0.x};
-		const float& poy{p0.y};
-		const float& poz{p0.z};
-		const float& ux{u.x};
-		const float& uy{u.y};
-		const float& uz{u.z};
-		const float& vx{v.x};
-		const float& vy{v.y};
-		const float& vz{v.z};
-		const float& rx{ray->direction.x};
-		const float& ry{ray->direction.y};
-		const float& rz{ray->direction.z};
-		const float& ox{ray->origin.x};
-		const float& oy{ray->origin.y};
-		const float& oz{ray->origin.z};
-		const float u_factor = (-(ox - pox)*(ry*vz - rz*vy) + (oy - poy)*(rx*vz - rz*vx) - (oz - poz)*(rx*vy - ry*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
-		const float v_factor = ((ox - pox)*(ry*uz - rz*uy) - (oy - poy)*(rx*uz - rz*ux) + (oz - poz)*(rx*uy - ry*ux))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
-		const float ray_factor = (-(ox - pox)*(uy*vz - uz*vy) + (oy - poy)*(ux*vz - uz*vx) - (oz - poz)*(ux*vy - uy*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
+    const Vector pvec{ray->direction^v};
+    const float det{u%pvec};
+    const float idet{1/det};
+    const Vector tvec{ray->origin - p0};
+    const float Xu_factor{tvec%pvec * idet};
+    const Vector qvec{tvec^u};
+    const float Xv_factor{ray->direction%qvec * idet};
+    /// HIT
+    ray->hit_distance = v%qvec * idet;
 
-		ray->hit_distance = ray_factor;
+		//const float& pox{p0.x};
+		//const float& poy{p0.y};
+		//const float& poz{p0.z};
+		//const float& ux{u.x};
+		//const float& uy{u.y};
+		//const float& uz{u.z};
+		//const float& vx{v.x};
+		//const float& vy{v.y};
+		//const float& vz{v.z};
+		//const float& rx{ray->direction.x};
+		//const float& ry{ray->direction.y};
+		//const float& rz{ray->direction.z};
+		//const float& ox{ray->origin.x};
+		//const float& oy{ray->origin.y};
+		//const float& oz{ray->origin.z};
+		//const float u_factor = (-(ox - pox)*(ry*vz - rz*vy) + (oy - poy)*(rx*vz - rz*vx) - (oz - poz)*(rx*vy - ry*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
+		//const float v_factor = ((ox - pox)*(ry*uz - rz*uy) - (oy - poy)*(rx*uz - rz*ux) + (oz - poz)*(rx*uy - ry*ux))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
+		//const float ray_factor = (-(ox - pox)*(uy*vz - uz*vy) + (oy - poy)*(ux*vz - uz*vx) - (oz - poz)*(ux*vy - uy*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
 
-    const Vector outgoing_ray_origin{p0 + u*u_factor + v*v_factor};
+		//ray->hit_distance = ray_factor;
+
+    //const Vector outgoing_ray_origin{p0 + u*u_factor + v*v_factor};
+    const Vector outgoing_ray_origin{ray->origin + ray->direction*ray->hit_distance};
 		Vector outgoing_ray_direction{!(ray->direction + 
 														      !normal*(!normal%-ray->direction)*2)};
 
@@ -578,7 +590,7 @@ const Vector X{0.002, 0, 0};
 /// Y = up
 const Vector Y{0, 0.002, 0};
 
-const int AA_samples{512};
+const int AA_samples{64};
 const float DoF_jitter{0.f};
 const float focus_distance{4.f};
 
@@ -595,7 +607,7 @@ struct World
 
 
 void TraceRayStep(const World& world,
-                  Ray* ray) 
+                  Ray* const ray) 
 {
   if (ray->depth > 100)
     return;
