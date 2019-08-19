@@ -380,16 +380,6 @@ public:
                                 !normal*(!normal%-outgoing_ray_direction)*2);
     }
 
-    /// REFRACTION
-    const float in_angle = std::acos(-ray->direction%!normal);
-    const float out_angle = std::asin(std::sin(in_angle) * 
-                                      ray->refractive_index / 
-                                      refractive_index);
-    const Vector rotvec{ray->direction^normal};
-    const Vector outvec{-normal*std::cos(-out_angle) +
-                        rotvec*(rotvec%-normal)*(1-std::cos(-out_angle)) +
-                        (-normal^rotvec)*std::sin(-out_angle)};
-    /// REFRACTION
 
     ray->origin = outgoing_ray_origin;
     ray->hit_at = outgoing_ray_origin;
@@ -397,7 +387,7 @@ public:
     ray->direction = outgoing_ray_direction;
 
     ray->children.emplace_back(new Ray{outgoing_ray_origin,
-                                       !outvec});
+                                       outgoing_ray_direction});
     ray->children.back()->energy = reflectivity;
     ray->children.back()->parent = ray;
     ray->children.back()->depth  = ray->depth + 1;
@@ -469,16 +459,16 @@ public:
     ray->hit_distance = v%qvec * idet;
 
 
-    /// REFRACTION
-    const float in_angle = std::acos(-ray->direction%!normal);
-    const float out_angle = std::asin(std::sin(in_angle) * 
-                                      ray->refractive_index / 
-                                      refractive_index);
-    const Vector rotvec{-ray->direction^normal};
-    const Vector outvec{!normal*std::cos(-out_angle) +
-                        rotvec*(rotvec%!normal)*(1-std::cos(-out_angle)) +
-                        (!normal^rotvec)*std::sin(-out_angle)};
-    /// REFRACTION
+    /// Refraction
+    /// cos(incident angle)
+    const float in_angle = ray->direction%!normal;
+    /// refractive-indices-ratio
+    const float rir{ray->refractive_index / refractive_index};
+    const Vector refracted_direction{
+        ray->direction * rir -
+        !normal*(rir * in_angle + 
+                 std::sqrt(1 - (rir*rir * (1 - in_angle*in_angle))))
+    };
 
 
     //const Vector outgoing_ray_origin{p0 + u*u_factor + v*v_factor};
@@ -499,7 +489,7 @@ public:
     ray->direction = outgoing_ray_direction;
 
     ray->children.emplace_back(new Ray{outgoing_ray_origin,
-                                       !outvec});
+                                       outgoing_ray_direction});
     ray->children.back()->energy = reflectivity;
     ray->children.back()->parent = ray;
     ray->children.back()->depth  = ray->depth + 1;
@@ -864,14 +854,12 @@ int main() {
     world.scene_objects.back()->set_reflectivity(0.95);
     world.scene_objects.back()->set_diffuse_factor(0);
     world.scene_objects.back()->set_roughness(0.75);
-    world.scene_objects.back()->set_refractive_index(1.);
     world.scene_objects.push_back(new Sphere{s_rot*Vector{-1.25,.8,0}, .25});
     world.scene_objects.back()->set_color({255, 165, 0});
     world.scene_objects.back()->set_reflectivity(0.95);
     world.scene_objects.back()->set_diffuse_factor(0.9);
     world.scene_objects.back()->set_specular_factor(1);
     world.scene_objects.back()->set_hardness(99);
-    world.scene_objects.back()->set_refractive_index(1.3);
 
     /// The octahedron has a separate rotation
     RotationMatrix o_rot{0.5f*frame/100.f*(22/7.f),
