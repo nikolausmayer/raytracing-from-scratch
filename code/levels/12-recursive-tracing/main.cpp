@@ -299,6 +299,11 @@ class Object
     roughness = v;
   }
 
+  void set_refractive_index(float v)
+  {
+    refractive_index = v;
+  }
+
 
   Vector color;
   float reflectivity;
@@ -326,6 +331,7 @@ public:
 
   bool is_hit_by_ray(Ray* ray) const
   {
+    /// TODO inside->outside on object transmission
     const Vector p = center - ray->origin;
     //const float threshold = std::sqrt(p%p - radius*radius);
     const float threshold_squared = p%p - radius*radius;
@@ -373,16 +379,29 @@ public:
       outgoing_ray_direction = !(outgoing_ray_direction + 
                                 !normal*(!normal%-outgoing_ray_direction)*2);
     }
+
+    /// REFRACTION
+    const float in_angle = std::acos(-ray->direction%!normal);
+    const float out_angle = std::asin(std::sin(in_angle) * 
+                                      ray->refractive_index / 
+                                      refractive_index);
+    const Vector rotvec{ray->direction^normal};
+    const Vector outvec{-normal*std::cos(-out_angle) +
+                        rotvec*(rotvec%-normal)*(1-std::cos(-out_angle)) +
+                        (-normal^rotvec)*std::sin(-out_angle)};
+    /// REFRACTION
+
     ray->origin = outgoing_ray_origin;
     ray->hit_at = outgoing_ray_origin;
     ray->object_normal = !(outgoing_ray_direction - ray->direction);
     ray->direction = outgoing_ray_direction;
 
     ray->children.emplace_back(new Ray{outgoing_ray_origin,
-                                       outgoing_ray_direction});
+                                       !outvec});
     ray->children.back()->energy = reflectivity;
     ray->children.back()->parent = ray;
     ray->children.back()->depth  = ray->depth + 1;
+    ray->children.back()->refractive_index = refractive_index;
 
 
     ray->color = color;
@@ -413,6 +432,7 @@ public:
 
   bool is_hit_by_ray(Ray* ray) const
   {
+    /// TODO inside->outside on object transmission
     if (normal % ray->direction >= 0)
       return false;
 
@@ -436,36 +456,6 @@ public:
       if (ray->hit_distance < 1e-3) return false;
       return true;
     }
-
-		//const float& pox{p0.x};
-		//const float& poy{p0.y};
-		//const float& poz{p0.z};
-		//const float& ux{u.x};
-		//const float& uy{u.y};
-		//const float& uz{u.z};
-		//const float& vx{v.x};
-		//const float& vy{v.y};
-		//const float& vz{v.z};
-		//const float& rx{ray->direction.x};
-		//const float& ry{ray->direction.y};
-		//const float& rz{ray->direction.z};
-		//const float& ox{ray->origin.x};
-		//const float& oy{ray->origin.y};
-		//const float& oz{ray->origin.z};
-		//const float u_factor = (-(ox - pox)*(ry*vz - rz*vy) + (oy - poy)*(rx*vz - rz*vx) - (oz - poz)*(rx*vy - ry*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
-		//if (u_factor < 0 or u_factor > 1) 
-    //  return false;
-		//const float v_factor = ((ox - pox)*(ry*uz - rz*uy) - (oy - poy)*(rx*uz - rz*ux) + (oz - poz)*(rx*uy - ry*ux))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
-		//if (v_factor < 0 or u_factor+v_factor > 1) 
-    //  return false;
-		//const float ray_factor = (-(ox - pox)*(uy*vz - uz*vy) + (oy - poy)*(ux*vz - uz*vx) - (oz - poz)*(ux*vy - uy*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
-
-		//if (ray_factor < 1e-3)
-		//	return false;
-    //
-		//ray->hit_distance = ray_factor;
-
-		//return true;
   }
 
   void trace_object(Ray* ray) const
@@ -478,26 +468,18 @@ public:
     /// HIT
     ray->hit_distance = v%qvec * idet;
 
-		//const float& pox{p0.x};
-		//const float& poy{p0.y};
-		//const float& poz{p0.z};
-		//const float& ux{u.x};
-		//const float& uy{u.y};
-		//const float& uz{u.z};
-		//const float& vx{v.x};
-		//const float& vy{v.y};
-		//const float& vz{v.z};
-		//const float& rx{ray->direction.x};
-		//const float& ry{ray->direction.y};
-		//const float& rz{ray->direction.z};
-		//const float& ox{ray->origin.x};
-		//const float& oy{ray->origin.y};
-		//const float& oz{ray->origin.z};
-		//const float u_factor = (-(ox - pox)*(ry*vz - rz*vy) + (oy - poy)*(rx*vz - rz*vx) - (oz - poz)*(rx*vy - ry*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
-		//const float v_factor = ((ox - pox)*(ry*uz - rz*uy) - (oy - poy)*(rx*uz - rz*ux) + (oz - poz)*(rx*uy - ry*ux))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
-		//const float ray_factor = (-(ox - pox)*(uy*vz - uz*vy) + (oy - poy)*(ux*vz - uz*vx) - (oz - poz)*(ux*vy - uy*vx))/(rx*uy*vz - rx*uz*vy - ry*ux*vz + ry*uz*vx + rz*ux*vy - rz*uy*vx);
 
-		//ray->hit_distance = ray_factor;
+    /// REFRACTION
+    const float in_angle = std::acos(-ray->direction%!normal);
+    const float out_angle = std::asin(std::sin(in_angle) * 
+                                      ray->refractive_index / 
+                                      refractive_index);
+    const Vector rotvec{-ray->direction^normal};
+    const Vector outvec{!normal*std::cos(-out_angle) +
+                        rotvec*(rotvec%!normal)*(1-std::cos(-out_angle)) +
+                        (!normal^rotvec)*std::sin(-out_angle)};
+    /// REFRACTION
+
 
     //const Vector outgoing_ray_origin{p0 + u*u_factor + v*v_factor};
     const Vector outgoing_ray_origin{ray->origin + ray->direction*ray->hit_distance};
@@ -517,10 +499,11 @@ public:
     ray->direction = outgoing_ray_direction;
 
     ray->children.emplace_back(new Ray{outgoing_ray_origin,
-                                       outgoing_ray_direction});
+                                       !outvec});
     ray->children.back()->energy = reflectivity;
     ray->children.back()->parent = ray;
     ray->children.back()->depth  = ray->depth + 1;
+    ray->children.back()->refractive_index = refractive_index;
 
     ray->object_normal = !(outgoing_ray_direction - ray->direction);
 
@@ -589,8 +572,8 @@ const Vector X{0.002, 0, 0};
 const Vector Y{0, 0.002, 0};
 
 
-const int THREADS{1};
-const int AA_samples{512};
+const int THREADS{4};
+const int AA_samples{64};
 const float DoF_jitter{0.f};
 const float focus_distance{4.f};
 
@@ -738,127 +721,134 @@ void cleanup_worker()
 }
 
 
+struct WorkPackage
+{
+  int x_start, x_end;
+  int y_start, y_end;
+};
+std::deque<WorkPackage> work_packages;
+std::deque<WorkPackage> work_packages_done;
+std::mutex work_packages__mutex;
+size_t total_number_of_work_packages;
+
+
 void worker_function(const World& world, int thread_idx)
 {
-  const int STEP{static_cast<size_t>(512/THREADS)};
-  const int y_start{std::min(256, 256-thread_idx*STEP)};
-  const int y_end{std::max(-255, 256-thread_idx*STEP-STEP)};
+  (void)thread_idx;
 
-  std::deque<Ray*> thread_ray_queue;
-  //std::deque<Ray const*> thread_delete_ray_queue;
+  //const int STEP{static_cast<size_t>(512/THREADS)};
+  //const int y_start{std::min(256, 256-thread_idx*STEP)};
+  //const int y_end{std::max(-255, 256-thread_idx*STEP-STEP)};
 
-  int x{-255};
-  int y{y_start};
-  int sample{-1};
+  while (work_packages.size()) {
 
-  //while (not all_pushed) {
-  while (true) {
-    //if (x > 256 or y <= y_end or sample >= AA_samples)
-    //  std::cout << x << " " << y << " " << sample << std::endl;
-    //while (ray_tasks_in_flight.size() or
-    //       thread_ray_queue.size()) {
+    WorkPackage wp;
     {
-      Ray* ray;
-      if (thread_ray_queue.size()) {
-        ray = thread_ray_queue.front();
-        thread_ray_queue.pop_front();
-      } else {
-        {
-          ++sample;
-          if (sample == AA_samples) {
-            ++x;
-            sample = 0;
-          }
-          if (x > 256) {
-            --y;
-            x = -255;
-          }
-          if (y == y_end)
-            break;
-        }
-
-        {
-          Vector ray_origin{0, 1, -4};
-          Vector ray_direction = !Vector{X*(x-0.5f+random_offset()) + 
-                                         Y*(y-0.5f+random_offset()) +
-                                         Z};
-          /// Depth-of-field
-          const Vector sensor_shift{random_offset()*DoF_jitter,
-                                    random_offset()*DoF_jitter,
-                                    0};
-          ray_origin = world.camera_rotation * (ray_origin + sensor_shift);
-          ray_direction = !(ray_direction - sensor_shift*(1./focus_distance));
-          ray_direction = world.camera_rotation * ray_direction;
-          ray = new Ray{ray_origin, 
-                        ray_direction,
-                        &world.raw_data[(((256-y)*512+(255+x))*AA_samples+sample)*3]};
-        }
-
-        //std::cout << (((256-y)*512+(255+x))*AA_samples+sample)*3 << " " 
-        //          << ((((256-y)*512+(255+x))*AA_samples+sample)*3 > 512*512*AA_samples*3 ? "NOOO" : "")
-        //          << std::endl;
-
-
-        //const size_t PREFETCH{1000};
-        //std::lock_guard<std::mutex> LOCK(ray_tasks_in_flight__mutex);
-        //if (not ray_tasks_in_flight.size()) 
-        //  continue;
-        //const size_t pre{std::min(ray_tasks_in_flight.size(), PREFETCH)};
-        //for (size_t i = 0; i < pre; ++i) {
-        //  try {
-        //    ray = ray_tasks_in_flight.front();
-        //  } catch (...) {
-        //    break;
-        //  }
-        //  thread_ray_queue.push_back(ray);
-        //  ray_tasks_in_flight.pop_front();
-        //}
-        //continue;
+      std::lock_guard<std::mutex> LOCK(work_packages__mutex);
+      if (not work_packages.size()) 
+        break;
+      try {
+        wp = work_packages.front();
+      } catch(...) {
+        break;
       }
-      ++ray_counter;
-
-      TraceRayStep(world, ray);
-
-      if (ray->children.size()) {
-        for (auto& child : ray->children)
-          /// All child rays processed by same thread;
-          /// makes memory management easier
-          thread_ray_queue.push_front(child);
-      }
-
-      if (ray->try_finalize()) {
-        Ray const* ancestor{ray};
-        while (ancestor->parent and ancestor->is_finalized)
-          ancestor = ancestor->parent;
-
-        /// Ray done?
-        if ((not ancestor->parent) and ancestor->is_finalized) {
-          //if (thread_idx == 0)
-          //  ancestor->memory_target[0] = 255;
-          //else if (thread_idx == 1) 
-          //  ancestor->memory_target[1] = 255;
-          //else if (thread_idx == 2) 
-          //  ancestor->memory_target[2] = 255;
-
-          ancestor->memory_target[0] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.x)));
-          ancestor->memory_target[1] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.y)));
-          ancestor->memory_target[2] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.z)));
-
-          /// Yup, ray done. Delete!
-          //thread_delete_ray_queue.push_back(ancestor);
-          delete ancestor;
-        }
-      }
-
-      //if (thread_delete_ray_queue.size() >= 1000) {
-      //  std::lock_guard<std::mutex> LOCK(ray_tasks_for_deletion__mutex);
-      //  for (auto& r : thread_delete_ray_queue)
-      //    ray_tasks_for_deletion.push_back(r);
-      //  thread_delete_ray_queue.clear();
-      //}
+      work_packages.pop_front();
     }
-    //std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+    std::deque<Ray*> thread_ray_queue;
+    //std::deque<Ray const*> thread_delete_ray_queue;
+
+    int _x, _y;
+    int x{wp.x_start};
+    int y{wp.y_start};
+    int sample{-1};
+
+    //while (not all_pushed) {
+    while (true) {
+      //if (x > 256 or y <= y_end or sample >= AA_samples)
+      //  std::cout << x << " " << y << " " << sample << std::endl;
+      //while (ray_tasks_in_flight.size() or
+      //       thread_ray_queue.size()) {
+      {
+        Ray* ray;
+        if (thread_ray_queue.size()) {
+          ray = thread_ray_queue.front();
+          thread_ray_queue.pop_front();
+        } else {
+          {
+            ++sample;
+            if (sample == AA_samples) {
+              ++x;
+              sample = 0;
+            }
+            if (x > wp.x_end) {
+              ++y;
+              x = wp.x_start;
+            }
+            if (y > wp.y_end)
+              break;
+          }
+
+          _x = x - 255;
+          _y = 256 - y;
+
+          {
+            Vector ray_origin{0, 1, -4};
+            Vector ray_direction = !Vector{X*(_x-0.5f+random_offset()) + 
+                                           Y*(_y-0.5f+random_offset()) +
+                                           Z};
+            /// Depth-of-field
+            const Vector sensor_shift{random_offset()*DoF_jitter,
+                                      random_offset()*DoF_jitter,
+                                      0};
+            ray_origin = world.camera_rotation * (ray_origin + sensor_shift);
+            ray_direction = !(ray_direction - sensor_shift*(1./focus_distance));
+            ray_direction = world.camera_rotation * ray_direction;
+            ray = new Ray{ray_origin, 
+                          ray_direction,
+                          &world.raw_data[((y*512+x)*AA_samples+sample)*3]};
+          }
+        }
+        ++ray_counter;
+
+        TraceRayStep(world, ray);
+
+        if (ray->children.size()) {
+          for (auto& child : ray->children)
+            /// All child rays processed by same thread;
+            /// makes memory management easier
+            thread_ray_queue.push_front(child);
+        }
+
+        if (ray->try_finalize()) {
+          Ray const* ancestor{ray};
+          while (ancestor->parent and ancestor->is_finalized)
+            ancestor = ancestor->parent;
+
+          /// Ray done?
+          if ((not ancestor->parent) and ancestor->is_finalized) {
+
+            ancestor->memory_target[0] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.x)));
+            ancestor->memory_target[1] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.y)));
+            ancestor->memory_target[2] = static_cast<unsigned char>(std::max(0.f,std::min(255.f,ancestor->color.z)));
+
+            /// Yup, ray done. Delete!
+            delete ancestor;
+          }
+        }
+      }
+    }
+
+    {
+      std::lock_guard<std::mutex> LOCK(work_packages__mutex);
+      work_packages_done.push_back(wp);
+      std::cout << " Tiles done: " << work_packages_done.size()
+                << "/" << total_number_of_work_packages
+                << '\r' << std::flush;
+    }
+
   }
+
 }
 
 
@@ -874,12 +864,14 @@ int main() {
     world.scene_objects.back()->set_reflectivity(0.95);
     world.scene_objects.back()->set_diffuse_factor(0);
     world.scene_objects.back()->set_roughness(0.75);
+    world.scene_objects.back()->set_refractive_index(1.);
     world.scene_objects.push_back(new Sphere{s_rot*Vector{-1.25,.8,0}, .25});
     world.scene_objects.back()->set_color({255, 165, 0});
-    world.scene_objects.back()->set_reflectivity(0.05);
+    world.scene_objects.back()->set_reflectivity(0.95);
     world.scene_objects.back()->set_diffuse_factor(0.9);
     world.scene_objects.back()->set_specular_factor(1);
     world.scene_objects.back()->set_hardness(99);
+    world.scene_objects.back()->set_refractive_index(1.3);
 
     /// The octahedron has a separate rotation
     RotationMatrix o_rot{0.5f*frame/100.f*(22/7.f),
@@ -929,26 +921,59 @@ int main() {
                               frame/100.f*(22/7.f),
                               0.2f*std::sin(frame/100.f*(22/7.f))};
 
+    /// Create work packages
+    const int TILESIZE_X{64};
+    const int TILESIZE_Y{64};
+    for (int tilex = 0; tilex*TILESIZE_X < 512; ++tilex) {
+      for (int tiley = 0; tiley*TILESIZE_Y < 512; ++tiley) {
+        work_packages.emplace_back(WorkPackage{
+          tilex*TILESIZE_X,
+          std::min(512-1, (tilex+1)*TILESIZE_X),
+          tiley*TILESIZE_Y,
+          std::min(512-1, (tiley+1)*TILESIZE_Y)
+        });
+      }
+    }
+    total_number_of_work_packages = work_packages.size();
+
+    std::cout << "Using " << THREADS << " render threads." << std::endl;
 
     std::vector<std::thread> workers;
-    //workers.emplace_back(std::thread{Image, world});
-    //workers.emplace_back(std::thread{cleanup_worker});
-
     for (size_t thread_idx = 0; thread_idx < THREADS; ++thread_idx) {
       workers.emplace_back(std::thread{worker_function, std::ref(world), thread_idx});
     }
 
+    /*while (work_packages_done.size() < total_number_of_work_packages) {
+      std::ostringstream oss;
+      /// "frame_0005.ppm"
+      oss << "frame_" << std::setw(4) << std::setfill('0') << frame << ".ppm";
+      std::ofstream outfile(oss.str(), std::ios::binary);
+
+      /// PPM Header
+      outfile << "P6 512 512 255 ";
+
+      for (int y = 0; y < 512; ++y) {
+        for (int x = 0; x < 512; ++x) {
+          for (int c = 0; c < 3; ++c) {
+            outfile << world.raw_data[(((y*512)+x)*AA_samples)*3+c];
+          }
+        }
+      }
+
+      std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }*/
+
     for (auto& thread : workers)
       thread.join();
 
-    std::cout << "total number of rays: " << ray_counter << std::endl;
+    //std::cout << "total number of rays: " << ray_counter << std::endl;
 
 
     std::ostringstream oss;
     /// "frame_0005.ppm"
     oss << "frame_" << std::setw(4) << std::setfill('0') << frame << ".ppm";
     std::ofstream outfile(oss.str(), std::ios::binary);
-    std::cout << oss.str() << std::endl;
+    std::cout << std::endl << oss.str() << std::endl;
 
     /// PPM Header
     outfile << "P6 512 512 255 ";
