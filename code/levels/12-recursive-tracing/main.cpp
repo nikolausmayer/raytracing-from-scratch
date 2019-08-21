@@ -1,4 +1,12 @@
 
+/**
+ * NOTES
+ * - Refraction only works with a single object, not with nested objects,
+ *   because the refractive indices on both sides of a surface must be
+ *   known and this is not possible without exhaustively determining the
+ *   nesting of objects.
+ */
+
 #include <atomic>
 #include <chrono>
 #include <cmath>
@@ -12,6 +20,18 @@
 #include <sstream>
 #include <vector>
 #include <thread>
+
+
+const int WIDTH{512};
+const int HEIGHT{512};
+const int THREADS{4};
+const int TILESIZE_X{64};
+const int TILESIZE_Y{64};
+const int AA_samples{16};
+const int light_samples{1};
+
+const float DoF_jitter{0.f};
+const float focus_distance{4.f};
 
 
 float random_offset()
@@ -331,26 +351,38 @@ public:
 
   bool is_hit_by_ray(Ray* ray) const
   {
-    /// TODO inside->outside on object transmission
     const Vector p = center - ray->origin;
     //const float threshold = std::sqrt(p%p - radius*radius);
-    const float threshold_squared = p%p - radius*radius;
-    const float b = p % ray->direction;
-
-    if (b*b > threshold_squared) {
-      /// HIT
-      //const float s = std::sqrt(p % p - b * b);
-      const float s_squared = p % p - b * b;
-      const float t = std::sqrt(radius * radius - s_squared);
-      ray->hit_distance = b - t;
-
-      if (ray->hit_distance < 1e-3)
-        return false;
-
+    if (p.length() - radius < 1e-3) {
+      /// INSIDE
+      /// This ray ALWAYS hits the sphere
+      const Vector normal{ray->origin - center};
+      const float alpha{std::acos(-!normal%!ray->direction)};
+      /// Sum of inner angles in a triangle (beta is angle at center)
+      const float beta{3.1416f - 2*alpha};
+      /// Side length in isosceles triangle
+      ray->hit_distance = 2*normal.length() * std::sin(beta/2);
       return true;
     } else {
-      /// NO HIT
-      return false;
+      /// OUTSIDE
+      const float threshold_squared = p%p - radius*radius;
+      const float b = p % ray->direction;
+
+      if (b*b > threshold_squared) {
+        /// HIT
+        //const float s = std::sqrt(p % p - b * b);
+        const float s_squared = p % p - b * b;
+        const float t = std::sqrt(radius * radius - s_squared);
+        ray->hit_distance = b - t;
+
+        if (ray->hit_distance < 1e-3)
+          return false;
+
+        return true;
+      } else {
+        /// NO HIT
+        return false;
+      }
     }
   }
 
@@ -363,10 +395,35 @@ public:
     const float s = std::sqrt(p % p - b * b);
     const float t = std::sqrt(radius * radius - s * s);
     ray->hit_distance = b - t;
+    const Vector normal = !(-p + ray->direction * ray->hit_distance);
+
+    const bool hit_from_front{normal % ray->direction < 0};
+    /// Refraction
+    /// cos(incident angle)
+    const float in_angle = hit_from_front
+                            ? ray->direction%!normal
+                            : ray->direction%-!normal;
+    /// refractive-indices-ratio
+    const float rir = hit_from_front 
+                        ? ray->refractive_index / refractive_index
+                        : refractive_index / ray->refractive_index;
+
+    const bool total_internal_reflection{(rir * std::sin(std::acos(in_angle))) > 1};
+    Vector refraction;
+    if (total_internal_reflection) {
+      /// Total internal reflection
+      refraction = !(ray->direction + 
+                     -!normal*(-!normal%-ray->direction)*2);
+    } else {
+      refraction = {
+          ray->direction * rir -
+          !normal*(rir * in_angle + 
+                   std::sqrt(1 - (rir*rir * (1 - in_angle*in_angle))))
+      };
+    }
 
     const Vector outgoing_ray_origin{ray->origin + 
                                      ray->direction*ray->hit_distance};
-    const Vector normal = !(-p + ray->direction * ray->hit_distance);
     Vector outgoing_ray_direction{!(ray->direction + 
                                   !normal*(!normal%-ray->direction)*2)};
 
@@ -387,7 +444,8 @@ public:
     ray->direction = outgoing_ray_direction;
 
     ray->children.emplace_back(new Ray{outgoing_ray_origin,
-                                       outgoing_ray_direction});
+                                       !refraction});
+                                       //outgoing_ray_direction});
     ray->children.back()->energy = reflectivity;
     ray->children.back()->parent = ray;
     ray->children.back()->depth  = ray->depth + 1;
@@ -422,7 +480,6 @@ public:
 
   bool is_hit_by_ray(Ray* ray) const
   {
-    /// TODO inside->outside on object transmission
     //if (normal % ray->direction >= 0)
     //  return false;
     
@@ -586,17 +643,6 @@ const Vector X{0.002, 0, 0};
 /// Y = up
 const Vector Y{0, 0.002, 0};
 
-
-const int WIDTH{512};
-const int HEIGHT{512};
-const int THREADS{4};
-const int TILESIZE_X{64};
-const int TILESIZE_Y{64};
-const int AA_samples{16};
-const int light_samples{1};
-
-const float DoF_jitter{0.f};
-const float focus_distance{4.f};
 
 
 struct World
@@ -856,12 +902,14 @@ int main() {
     world.scene_objects.back()->set_reflectivity(0.95);
     world.scene_objects.back()->set_diffuse_factor(0);
     world.scene_objects.back()->set_roughness(0.75);
+    world.scene_objects.back()->set_refractive_index(1);
     world.scene_objects.push_back(new Sphere{s_rot*Vector{-1.25,.8,0}, .25});
     world.scene_objects.back()->set_color({255, 165, 0});
-    world.scene_objects.back()->set_reflectivity(0.05);
+    world.scene_objects.back()->set_reflectivity(0.95);
     world.scene_objects.back()->set_diffuse_factor(0.9);
     world.scene_objects.back()->set_specular_factor(1);
     world.scene_objects.back()->set_hardness(99);
+    world.scene_objects.back()->set_refractive_index(1.01);
 
     /// The octahedron has a separate rotation
     RotationMatrix o_rot{0.5f*(frame+15)/100.f*(22/7.f),
