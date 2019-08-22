@@ -356,10 +356,10 @@ public:
     if (p.length() - radius < 1e-3) {
       /// INSIDE
       /// This ray ALWAYS hits the sphere
-      const Vector normal{ray->origin - center};
+      const Vector normal{-p};
       const float alpha{std::acos(-!normal%!ray->direction)};
-      /// Sum of inner angles in a triangle (beta is angle at center)
-      const float beta{3.1416f - 2*alpha};
+      /// Using sum of inner angles in a triangle (beta is angle at center)
+      const float beta{0.5f*3.141592f - 2*alpha};
       /// Side length in isosceles triangle
       ray->hit_distance = 2*normal.length() * std::sin(beta/2);
       return true;
@@ -389,35 +389,43 @@ public:
   void trace_object(Ray* ray) const
   {
     const Vector p = center - ray->origin;
-    const float b = p % ray->direction;
 
-    /// HIT
-    const float s = std::sqrt(p % p - b * b);
-    const float t = std::sqrt(radius * radius - s * s);
-    ray->hit_distance = b - t;
-    const Vector normal = !(-p + ray->direction * ray->hit_distance);
+    const bool hit_from_front{p.length() - radius >= 1e-3};
+    const Vector normal{-!p};
+    if (not hit_from_front) {
+      /// INSIDE
+      /// This ray ALWAYS hits the sphere
+      const float alpha{std::acos(-normal%!ray->direction)};
+      /// Using sum of inner angles in a triangle (beta is angle at center)
+      const float beta{0.5f*3.141592f - 2*alpha};
+      /// Side length in isosceles triangle
+      ray->hit_distance = 2*p.length() * std::sin(beta/2)+0.002;
+    } else {
+      const float b = p % ray->direction;
+      const float s = std::sqrt(p % p - b * b);
+      const float t = std::sqrt(radius * radius - s * s);
+      ray->hit_distance = b - t;
+    }
 
-    const bool hit_from_front{normal % ray->direction < 0};
     /// Refraction
     /// cos(incident angle)
-    const float in_angle = hit_from_front
-                            ? ray->direction%!normal
-                            : ray->direction%-!normal;
+    const float in_angle{ray->direction%-normal};
     /// refractive-indices-ratio
     const float rir = hit_from_front 
                         ? ray->refractive_index / refractive_index
                         : refractive_index / ray->refractive_index;
 
-    const bool total_internal_reflection{(rir * std::sin(std::acos(in_angle))) > 1};
+    const bool total_internal_reflection{not hit_from_front and 
+                                         (rir * std::sin(std::acos(in_angle))) > 1};
     Vector refraction;
     if (total_internal_reflection) {
       /// Total internal reflection
       refraction = !(ray->direction + 
-                     -!normal*(-!normal%-ray->direction)*2);
+                     -normal*std::abs(normal%ray->direction)*2);
     } else {
       refraction = {
           ray->direction * rir -
-          !normal*(rir * in_angle + 
+          normal*(rir * in_angle + 
                    std::sqrt(1 - (rir*rir * (1 - in_angle*in_angle))))
       };
     }
@@ -425,7 +433,7 @@ public:
     const Vector outgoing_ray_origin{ray->origin + 
                                      ray->direction*ray->hit_distance};
     Vector outgoing_ray_direction{!(ray->direction + 
-                                  !normal*(!normal%-ray->direction)*2)};
+                                  normal*std::abs(normal%ray->direction)*2)};
 
     /// Add randomness (would be the same for triangles)
     outgoing_ray_direction = !(outgoing_ray_direction +
@@ -434,7 +442,7 @@ public:
                                        random_offset()}*roughness);
     if (normal % outgoing_ray_direction <= 0) {
       outgoing_ray_direction = !(outgoing_ray_direction + 
-                                !normal*(!normal%-outgoing_ray_direction)*2);
+                                normal*std::abs(normal%outgoing_ray_direction)*2);
     }
 
 
@@ -449,8 +457,11 @@ public:
     ray->children.back()->energy = reflectivity;
     ray->children.back()->parent = ray;
     ray->children.back()->depth  = ray->depth + 1;
-    ray->children.back()->refractive_index = refractive_index;
-
+    if (hit_from_front) {
+      ray->children.back()->refractive_index = refractive_index;
+    } else {
+      ray->children.back()->refractive_index = ray->refractive_index;
+    }
 
     ray->color = color;
     ray->object_reflectivity = reflectivity;
@@ -659,7 +670,7 @@ struct World
 void TraceRayStep(const World& world,
                   Ray* const ray) 
 {
-  if (ray->depth > 100)
+  if (ray->depth > 2)
     return;
 
   bool an_object_was_hit{false};
@@ -902,14 +913,14 @@ int main() {
     world.scene_objects.back()->set_reflectivity(0.95);
     world.scene_objects.back()->set_diffuse_factor(0);
     world.scene_objects.back()->set_roughness(0.75);
-    world.scene_objects.back()->set_refractive_index(1);
+    world.scene_objects.back()->set_refractive_index(1.3);
     world.scene_objects.push_back(new Sphere{s_rot*Vector{-1.25,.8,0}, .25});
     world.scene_objects.back()->set_color({255, 165, 0});
     world.scene_objects.back()->set_reflectivity(0.95);
     world.scene_objects.back()->set_diffuse_factor(0.9);
     world.scene_objects.back()->set_specular_factor(1);
     world.scene_objects.back()->set_hardness(99);
-    world.scene_objects.back()->set_refractive_index(1.01);
+    world.scene_objects.back()->set_refractive_index(1.3);
 
     /// The octahedron has a separate rotation
     RotationMatrix o_rot{0.5f*(frame+15)/100.f*(22/7.f),
