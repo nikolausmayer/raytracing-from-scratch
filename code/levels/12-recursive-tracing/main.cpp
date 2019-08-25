@@ -128,7 +128,7 @@ public:
       memory_target(memory_target),
       parent(nullptr),
       is_finalized{false},
-      refractive_index{1.f}
+      refractive_index{1.000293f}
   { }
 
   Ray(const Ray& other)
@@ -356,12 +356,12 @@ public:
     if (p.length() - radius < 1e-3) {
       /// INSIDE
       /// This ray ALWAYS hits the sphere
-      const Vector normal{-p};
-      const float alpha{std::acos(-!normal%!ray->direction)};
+      const Vector inside_normal{p};
+      const float alpha{std::acos(!inside_normal%ray->direction)};
       /// Using sum of inner angles in a triangle (beta is angle at center)
-      const float beta{0.5f*3.141592f - 2*alpha};
+      const float beta{3.141592f - 2*alpha};
       /// Side length in isosceles triangle
-      ray->hit_distance = 2*normal.length() * std::sin(beta/2);
+      ray->hit_distance = 2*radius * std::sin(beta/2);
       return true;
     } else {
       /// OUTSIDE
@@ -395,11 +395,11 @@ public:
     if (not hit_from_front) {
       /// INSIDE
       /// This ray ALWAYS hits the sphere
-      const float alpha{std::acos(-normal%!ray->direction)};
+      const float alpha{std::acos(-normal%ray->direction)};
       /// Using sum of inner angles in a triangle (beta is angle at center)
-      const float beta{0.5f*3.141592f - 2*alpha};
+      const float beta{3.141592f - 2*alpha};
       /// Side length in isosceles triangle
-      ray->hit_distance = 2*p.length() * std::sin(beta/2)+0.002;
+      ray->hit_distance = 2*radius * std::sin(beta/2)+0.03;
     } else {
       const float b = p % ray->direction;
       const float s = std::sqrt(p % p - b * b);
@@ -409,24 +409,25 @@ public:
 
     /// Refraction
     /// cos(incident angle)
-    const float in_angle{ray->direction%-normal};
+    const float in_angle = std::abs(ray->direction%normal);
     /// refractive-indices-ratio
     const float rir = hit_from_front 
                         ? ray->refractive_index / refractive_index
                         : refractive_index / ray->refractive_index;
 
-    const bool total_internal_reflection{not hit_from_front and 
-                                         (rir * std::sin(std::acos(in_angle))) > 1};
+    const bool total_internal_reflection{(not hit_from_front) and 
+                                         std::acos(in_angle) >= std::asin(1/rir)};
+                                         //(rir * std::sin(std::acos(in_angle))) > 1};
     Vector refraction;
     if (total_internal_reflection) {
       /// Total internal reflection
       refraction = !(ray->direction + 
-                     -normal*std::abs(normal%ray->direction)*2);
+                     -normal*(-normal%ray->direction)*2);
     } else {
       refraction = {
-          ray->direction * rir -
-          normal*(rir * in_angle + 
-                   std::sqrt(1 - (rir*rir * (1 - in_angle*in_angle))))
+          ray->direction * rir +
+          (hit_from_front ? normal : -normal) *
+            (rir * in_angle - std::sqrt(1 - (rir*rir * (1 - in_angle*in_angle))))
       };
     }
 
@@ -457,11 +458,11 @@ public:
     ray->children.back()->energy = reflectivity;
     ray->children.back()->parent = ray;
     ray->children.back()->depth  = ray->depth + 1;
-    if (hit_from_front) {
-      ray->children.back()->refractive_index = refractive_index;
-    } else {
+    //if (hit_from_front) {
+    //  ray->children.back()->refractive_index = refractive_index;
+    //} else {
       ray->children.back()->refractive_index = ray->refractive_index;
-    }
+    //}
 
     ray->color = color;
     ray->object_reflectivity = reflectivity;
@@ -537,25 +538,25 @@ public:
 
     /// Refraction
     /// cos(incident angle)
-    const float in_angle = hit_from_front
-                            ? ray->direction%!normal
-                            : ray->direction%-!normal;
+    const float in_angle = std::abs(ray->direction%normal);
     /// refractive-indices-ratio
     const float rir = hit_from_front 
                         ? ray->refractive_index / refractive_index
                         : refractive_index / ray->refractive_index;
 
-    const bool total_internal_reflection{(rir * std::sin(std::acos(in_angle))) > 1};
+    const bool total_internal_reflection{(not hit_from_front) and 
+                                         std::acos(in_angle) >= std::asin(1/rir)};
+                                         //(rir * std::sin(std::acos(in_angle))) > 1};
     Vector refraction;
     if (total_internal_reflection) {
       /// Total internal reflection
       refraction = !(ray->direction + 
-                     -!normal*(-!normal%-ray->direction)*2);
+                     -normal*(-normal%ray->direction)*2);
     } else {
       refraction = {
-          ray->direction * rir -
-          !normal*(rir * in_angle + 
-                   std::sqrt(1 - (rir*rir * (1 - in_angle*in_angle))))
+          ray->direction * rir +
+          (hit_from_front ? normal : -normal) *
+            (rir * in_angle - std::sqrt(1 - (rir*rir * (1 - in_angle*in_angle))))
       };
     }
 
@@ -620,12 +621,20 @@ void get_ground_color(Ray* ray)
   //  texture.read(reinterpret_cast<char*>(texture_data), tex_w * tex_h * 3);
   //}
 
-  const int tex_u = std::abs((int)((x*100)+1000)) % tex_w;
-  const int tex_v = std::abs((int)((z*100)+1100)) % tex_h;
-  const size_t color_start_idx = (tex_v * tex_w + tex_u) * 3;
-  ray->color = Vector{(float)(texture_data[color_start_idx]),
-                      (float)(texture_data[color_start_idx+1]),
-                      (float)(texture_data[color_start_idx+2])};
+  if ((int)std::abs(std::floor(x)) % 2 ==
+      (int)std::abs(std::floor(z)) % 2 )
+  {
+    ray->color = {255, 0, 0};
+  } else {
+    ray->color = {255, 255, 255};
+  }
+
+  //const int tex_u = std::abs((int)((x*100)+1000)) % tex_w;
+  //const int tex_v = std::abs((int)((z*100)+1100)) % tex_h;
+  //const size_t color_start_idx = (tex_v * tex_w + tex_u) * 3;
+  //ray->color = Vector{(float)(texture_data[color_start_idx]),
+  //                    (float)(texture_data[color_start_idx+1]),
+  //                    (float)(texture_data[color_start_idx+2])};
 
   ray->hit_at = {x, 0, z};
   ray->object_normal = {0, 1, 0};
@@ -920,7 +929,7 @@ int main() {
     world.scene_objects.back()->set_diffuse_factor(0.9);
     world.scene_objects.back()->set_specular_factor(1);
     world.scene_objects.back()->set_hardness(99);
-    world.scene_objects.back()->set_refractive_index(1.3);
+    world.scene_objects.back()->set_refractive_index(1.008);
 
     /// The octahedron has a separate rotation
     RotationMatrix o_rot{0.5f*(frame+15)/100.f*(22/7.f),
@@ -930,37 +939,37 @@ int main() {
     /// Octahedron (8 triangles)
     /// Bottom half
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
-                                         o_rot*Vector{-1, 0, 0}+Vector{0,1,0},
-                                         o_rot*Vector{ 0, 0, 1}+Vector{0,1,0}));
+                                               o_rot*Vector{-1, 0, 0}+Vector{0,1,0},
+                                               o_rot*Vector{ 0, 0, 1}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
-                                         o_rot*Vector{ 0, 0,-1}+Vector{0,1,0},
-                                         o_rot*Vector{-1, 0, 0}+Vector{0,1,0}));
+                                               o_rot*Vector{ 0, 0,-1}+Vector{0,1,0},
+                                               o_rot*Vector{-1, 0, 0}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
-                                         o_rot*Vector{ 1, 0, 0}+Vector{0,1,0},
-                                         o_rot*Vector{ 0, 0,-1}+Vector{0,1,0}));
+                                               o_rot*Vector{ 1, 0, 0}+Vector{0,1,0},
+                                               o_rot*Vector{ 0, 0,-1}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
-                                         o_rot*Vector{ 0, 0, 1}+Vector{0,1,0},
-                                         o_rot*Vector{ 1, 0, 0}+Vector{0,1,0}));
+                                               o_rot*Vector{ 0, 0, 1}+Vector{0,1,0},
+                                               o_rot*Vector{ 1, 0, 0}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
     /// Top half
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
-                                         o_rot*Vector{ 0, 0, 1}+Vector{0,1,0},
-                                         o_rot*Vector{-1, 0, 0}+Vector{0,1,0}));
+                                               o_rot*Vector{ 0, 0, 1}+Vector{0,1,0},
+                                               o_rot*Vector{-1, 0, 0}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
-                                         o_rot*Vector{ 1, 0, 0}+Vector{0,1,0},
-                                         o_rot*Vector{ 0, 0, 1}+Vector{0,1,0}));
+                                               o_rot*Vector{ 1, 0, 0}+Vector{0,1,0},
+                                               o_rot*Vector{ 0, 0, 1}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
-                                         o_rot*Vector{ 0, 0,-1}+Vector{0,1,0},
-                                         o_rot*Vector{ 1, 0, 0}+Vector{0,1,0}));
+                                               o_rot*Vector{ 0, 0,-1}+Vector{0,1,0},
+                                               o_rot*Vector{ 1, 0, 0}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
-                                         o_rot*Vector{-1, 0, 0}+Vector{0,1,0},
-                                         o_rot*Vector{ 0, 0,-1}+Vector{0,1,0}));
+                                               o_rot*Vector{-1, 0, 0}+Vector{0,1,0},
+                                               o_rot*Vector{ 0, 0,-1}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
 
 
