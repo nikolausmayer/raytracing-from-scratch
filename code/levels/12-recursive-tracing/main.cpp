@@ -391,11 +391,10 @@ public:
     const Vector p = center - ray->origin;
 
     const bool hit_from_front{p.length() - radius >= 1e-3};
-    const Vector normal{-!p};
     if (not hit_from_front) {
       /// INSIDE
       /// This ray ALWAYS hits the sphere
-      const float alpha{std::acos(-normal%ray->direction)};
+      const float alpha{std::acos(!p%ray->direction)};
       /// Using sum of inner angles in a triangle (beta is angle at center)
       const float beta{3.141592f - 2*alpha};
       /// Side length in isosceles triangle
@@ -406,6 +405,10 @@ public:
       const float t = std::sqrt(radius * radius - s * s);
       ray->hit_distance = b - t;
     }
+
+    const Vector outgoing_ray_origin{ray->origin + 
+                                     ray->direction*ray->hit_distance};
+    const Vector normal{!(outgoing_ray_origin - center)};
 
     /// Refraction
     /// cos(incident angle)
@@ -431,8 +434,6 @@ public:
       };
     }
 
-    const Vector outgoing_ray_origin{ray->origin + 
-                                     ray->direction*ray->hit_distance};
     Vector outgoing_ray_direction{!(ray->direction + 
                                   normal*std::abs(normal%ray->direction)*2)};
 
