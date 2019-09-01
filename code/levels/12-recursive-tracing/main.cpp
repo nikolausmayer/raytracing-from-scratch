@@ -42,6 +42,16 @@ float random_offset()
 }
 
 
+/**
+ * Square something
+ */
+template <class T>
+T square(const T& v)
+{
+  return v*v;
+}
+
+
 class Vector {
 public:
   /// Constructor
@@ -279,7 +289,8 @@ class Object
       diffuse_factor(1),
       specular_factor(1),
       roughness(0),
-      refractive_index(1.04f)
+      refractive_index(1.000293f),
+      transmissivity(0.f)
   { }
 
   virtual ~Object()
@@ -324,6 +335,23 @@ class Object
     refractive_index = v;
   }
 
+  void set_transmissivity(float v)
+  {
+    transmissivity = v;
+  }
+
+
+  void addNoiseToOutgoingRay(Vector& v, const Vector& normal) const
+  {
+    /// Add randomness (would be the same for triangles)
+    v = !(v + !Vector{random_offset(),
+                      random_offset(),
+                      random_offset()}*roughness);
+    if (normal % v <= 0) {
+      v = !(v + normal*std::abs(normal%v)*2);
+    }
+  }
+
 
   Vector color;
   float reflectivity;
@@ -332,6 +360,7 @@ class Object
   float specular_factor;
   float roughness;
   float refractive_index;
+  float transmissivity;
 };
 
 
@@ -353,7 +382,7 @@ public:
   {
     const Vector p = center - ray->origin;
     //const float threshold = std::sqrt(p%p - radius*radius);
-    if (p.length() - radius < 1e-3) {
+    if (p.length() - radius < 0) {
       /// INSIDE
       /// This ray ALWAYS hits the sphere
       const Vector inside_normal{p};
@@ -390,7 +419,7 @@ public:
   {
     const Vector p = center - ray->origin;
 
-    const bool hit_from_front{p.length() - radius >= 1e-3};
+    const bool hit_from_front{p.length() - radius >= 0};
     if (not hit_from_front) {
       /// INSIDE
       /// This ray ALWAYS hits the sphere
@@ -398,7 +427,7 @@ public:
       /// Using sum of inner angles in a triangle (beta is angle at center)
       const float beta{3.141592f - 2*alpha};
       /// Side length in isosceles triangle
-      ray->hit_distance = 2*radius * std::sin(beta/2)+0.03;
+      ray->hit_distance = 2*radius * std::sin(beta/2);
     } else {
       const float b = p % ray->direction;
       const float s = std::sqrt(p % p - b * b);
@@ -406,13 +435,13 @@ public:
       ray->hit_distance = b - t;
     }
 
-    const Vector outgoing_ray_origin{ray->origin + 
-                                     ray->direction*ray->hit_distance};
-    const Vector normal{!(outgoing_ray_origin - center)};
+    const Vector hit_at{ray->origin + 
+                        ray->direction*ray->hit_distance};
+    const Vector normal{!(hit_at - center)};
 
     /// Refraction
     /// cos(incident angle)
-    const float in_angle = std::abs(ray->direction%normal);
+    const float in_angle{std::abs(ray->direction%normal)};
     /// refractive-indices-ratio
     const float rir = hit_from_front 
                         ? ray->refractive_index / refractive_index
@@ -420,54 +449,57 @@ public:
 
     const bool total_internal_reflection{(not hit_from_front) and 
                                          std::acos(in_angle) >= std::asin(1/rir)};
-                                         //(rir * std::sin(std::acos(in_angle))) > 1};
+    Vector reflection{!(ray->direction + normal*(-normal%ray->direction)*2)};
     Vector refraction;
-    if (total_internal_reflection) {
-      /// Total internal reflection
-      refraction = !(ray->direction + 
-                     -normal*(-normal%ray->direction)*2);
-    } else {
-      refraction = {
+    float fresnel_factor_reflection{1.f};
+    if (not total_internal_reflection) {
+      refraction = !Vector{
           ray->direction * rir +
           (hit_from_front ? normal : -normal) *
             (rir * in_angle - std::sqrt(1 - (rir*rir * (1 - in_angle*in_angle))))
       };
-    }
-
-    Vector outgoing_ray_direction{!(ray->direction + 
-                                  normal*std::abs(normal%ray->direction)*2)};
-
-    /// Add randomness (would be the same for triangles)
-    outgoing_ray_direction = !(outgoing_ray_direction +
-                               !Vector{random_offset(),
-                                       random_offset(),
-                                       random_offset()}*roughness);
-    if (normal % outgoing_ray_direction <= 0) {
-      outgoing_ray_direction = !(outgoing_ray_direction + 
-                                normal*std::abs(normal%outgoing_ray_direction)*2);
+      const float out_angle{std::abs(refraction%normal)};
+      const float eta_in {hit_from_front ? ray->refractive_index : refractive_index};
+      const float eta_out{hit_from_front ? refractive_index : ray->refractive_index};
+      fresnel_factor_reflection = square((eta_in *in_angle - eta_out*out_angle)/
+                                         (eta_in *in_angle + eta_out*out_angle))*0.5f +
+                                  square((eta_out*in_angle - eta_in *out_angle)/
+                                         (eta_out*in_angle + eta_in *out_angle))*0.5f;
     }
 
 
-    ray->origin = outgoing_ray_origin;
-    ray->hit_at = outgoing_ray_origin;
-    ray->object_normal = !(outgoing_ray_direction - ray->direction);
-    ray->direction = outgoing_ray_direction;
+    addNoiseToOutgoingRay(reflection, normal);
 
-    ray->children.emplace_back(new Ray{outgoing_ray_origin,
-                                       !refraction});
-                                       //outgoing_ray_direction});
-    ray->children.back()->energy = reflectivity;
-    ray->children.back()->parent = ray;
-    ray->children.back()->depth  = ray->depth + 1;
-    //if (hit_from_front) {
-    //  ray->children.back()->refractive_index = refractive_index;
-    //} else {
-      ray->children.back()->refractive_index = ray->refractive_index;
-    //}
+
+    ray->origin = hit_at + normal*0.001;
+    ray->hit_at = hit_at + normal*0.001;
+    ray->object_normal = normal;
+    ray->direction = reflection;
+
+    if (not total_internal_reflection) {
+      Ray* refracted_ray = new Ray{hit_at + (hit_from_front
+                                              ? -normal*0.001
+                                              :  normal*0.001),
+                                   refraction};
+      refracted_ray->energy = transmissivity*(1-fresnel_factor_reflection);
+      refracted_ray->parent = ray;
+      refracted_ray->depth  = ray->depth + 1;
+      refracted_ray->refractive_index = ray->refractive_index;
+      ray->children.emplace_back(std::move(refracted_ray));
+    }
+
+    Ray* reflected_ray = new Ray{hit_at + (total_internal_reflection 
+                                            ? -normal*0.001
+                                            :  normal*0.001),
+                                 reflection};
+    reflected_ray->energy = reflectivity*fresnel_factor_reflection;
+    reflected_ray->parent = ray;
+    reflected_ray->depth  = ray->depth + 1;
+    reflected_ray->refractive_index = ray->refractive_index;
+    ray->children.emplace_back(std::move(reflected_ray));
 
     ray->color = color;
     ray->object_reflectivity = reflectivity;
-
     ray->object_hardness = hardness;
     ray->object_diffuse_factor = diffuse_factor;
     ray->object_specular_factor = specular_factor;
@@ -535,6 +567,9 @@ public:
     /// HIT
     ray->hit_distance = v%qvec * idet;
 
+    const Vector hit_at{ray->origin + 
+                        ray->direction*ray->hit_distance};
+
     const bool hit_from_front{normal % ray->direction < 0};
 
     /// Refraction
@@ -547,51 +582,54 @@ public:
 
     const bool total_internal_reflection{(not hit_from_front) and 
                                          std::acos(in_angle) >= std::asin(1/rir)};
-                                         //(rir * std::sin(std::acos(in_angle))) > 1};
+    Vector reflection{!(ray->direction + normal*(-normal%ray->direction)*2)};
     Vector refraction;
-    if (total_internal_reflection) {
-      /// Total internal reflection
-      refraction = !(ray->direction + 
-                     -normal*(-normal%ray->direction)*2);
-    } else {
-      refraction = {
+    float fresnel_factor_reflection{1.f};
+    if (not total_internal_reflection) {
+      refraction = !Vector{
           ray->direction * rir +
           (hit_from_front ? normal : -normal) *
             (rir * in_angle - std::sqrt(1 - (rir*rir * (1 - in_angle*in_angle))))
       };
+      const float out_angle{std::abs(refraction%normal)};
+      const float eta_in {hit_from_front ? ray->refractive_index : refractive_index};
+      const float eta_out{hit_from_front ? refractive_index : ray->refractive_index};
+      fresnel_factor_reflection = square((eta_in *in_angle - eta_out*out_angle)/
+                                         (eta_in *in_angle + eta_out*out_angle))*0.5f +
+                                  square((eta_out*in_angle - eta_in *out_angle)/
+                                         (eta_out*in_angle + eta_in *out_angle))*0.5f;
     }
 
 
-    const Vector outgoing_ray_origin{ray->origin + ray->direction*ray->hit_distance};
-		Vector outgoing_ray_direction{!(ray->direction + 
-														      !normal*(!normal%-ray->direction)*2)};
+    addNoiseToOutgoingRay(reflection, normal);
 
-    /// Add randomness (would be the same for triangles)
-    outgoing_ray_direction = !(outgoing_ray_direction +
-                               !Vector{random_offset(),
-                                       random_offset(),
-                                       random_offset()}*roughness);
-    if (normal % outgoing_ray_direction <= 0) {
-      outgoing_ray_direction = !(outgoing_ray_direction + 
-                                !normal*(!normal%-outgoing_ray_direction)*2);
+    
+    ray->origin = hit_at + normal*0.001;
+    ray->hit_at = hit_at + normal*0.001;
+    ray->object_normal = normal;
+    ray->direction = reflection;
+
+    if (not total_internal_reflection) {
+      Ray* refracted_ray = new Ray{hit_at + (hit_from_front
+                                              ? -normal*0.001
+                                              :  normal*0.001),
+                                   refraction};
+      refracted_ray->energy = transmissivity*(1-fresnel_factor_reflection);
+      refracted_ray->parent = ray;
+      refracted_ray->depth  = ray->depth + 1;
+      refracted_ray->refractive_index = ray->refractive_index;
+      ray->children.emplace_back(std::move(refracted_ray));
     }
-    ray->origin = outgoing_ray_origin;
-    ray->direction = outgoing_ray_direction;
 
-    ray->children.emplace_back(new Ray{outgoing_ray_origin,
-                                       !refraction});
-                                       //outgoing_ray_direction});
-    ray->children.back()->energy = reflectivity;
-    ray->children.back()->parent = ray;
-    ray->children.back()->depth  = ray->depth + 1;
-
-    /// TODO TIR needs to know the refractice indices on BOTH SIDES of the surface
-    //if (total_internal_reflection)
-      ray->children.back()->refractive_index = ray->refractive_index;
-    //else
-    //  ray->children.back()->refractive_index = refractive_index;
-
-    ray->object_normal = !(outgoing_ray_direction - ray->direction);
+    Ray* reflected_ray = new Ray{hit_at + (total_internal_reflection 
+                                            ? -normal*0.001
+                                            :  normal*0.001),
+                                 reflection};
+    reflected_ray->energy = reflectivity*fresnel_factor_reflection;
+    reflected_ray->parent = ray;
+    reflected_ray->depth  = ray->depth + 1;
+    reflected_ray->refractive_index = ray->refractive_index;
+    ray->children.emplace_back(std::move(reflected_ray));
 
 		ray->color = color;
     ray->object_reflectivity = reflectivity;
@@ -613,8 +651,8 @@ void get_ground_color(Ray* ray)
   const float x = ray->origin.x + ray->direction.x * distance;
   const float z = ray->origin.z + ray->direction.z * distance;
 
-  const int tex_w{600};
-  const int tex_h{400};
+  //const int tex_w{600};
+  //const int tex_h{400};
   //if (not texture_data) {
   //  std::ifstream texture("texture.ppm", std::ios::binary);
   //  texture_data = new unsigned char[tex_w * tex_h * 3];
@@ -680,7 +718,7 @@ struct World
 void TraceRayStep(const World& world,
                   Ray* const ray) 
 {
-  if (ray->depth > 2)
+  if (ray->depth > 5)
     return;
 
   bool an_object_was_hit{false};
@@ -924,6 +962,7 @@ int main() {
     world.scene_objects.back()->set_diffuse_factor(0);
     world.scene_objects.back()->set_roughness(0.75);
     world.scene_objects.back()->set_refractive_index(1.3);
+    world.scene_objects.back()->set_transmissivity(1);
     world.scene_objects.push_back(new Sphere{s_rot*Vector{-1.25,.8,0}, .25});
     world.scene_objects.back()->set_color({255, 165, 0});
     world.scene_objects.back()->set_reflectivity(0.95);
@@ -931,6 +970,7 @@ int main() {
     world.scene_objects.back()->set_specular_factor(1);
     world.scene_objects.back()->set_hardness(99);
     world.scene_objects.back()->set_refractive_index(1.008);
+    world.scene_objects.back()->set_transmissivity(1);
 
     /// The octahedron has a separate rotation
     RotationMatrix o_rot{0.5f*(frame+15)/100.f*(22/7.f),
@@ -943,35 +983,51 @@ int main() {
                                                o_rot*Vector{-1, 0, 0}+Vector{0,1,0},
                                                o_rot*Vector{ 0, 0, 1}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
+    world.scene_objects.back()->set_refractive_index(1.04f);
+    world.scene_objects.back()->set_transmissivity(1);
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
                                                o_rot*Vector{ 0, 0,-1}+Vector{0,1,0},
                                                o_rot*Vector{-1, 0, 0}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
+    world.scene_objects.back()->set_refractive_index(1.04f);
+    world.scene_objects.back()->set_transmissivity(1);
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
                                                o_rot*Vector{ 1, 0, 0}+Vector{0,1,0},
                                                o_rot*Vector{ 0, 0,-1}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
+    world.scene_objects.back()->set_refractive_index(1.04f);
+    world.scene_objects.back()->set_transmissivity(1);
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
                                                o_rot*Vector{ 0, 0, 1}+Vector{0,1,0},
                                                o_rot*Vector{ 1, 0, 0}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
+    world.scene_objects.back()->set_refractive_index(1.04f);
+    world.scene_objects.back()->set_transmissivity(1);
     /// Top half
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
                                                o_rot*Vector{ 0, 0, 1}+Vector{0,1,0},
                                                o_rot*Vector{-1, 0, 0}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
+    world.scene_objects.back()->set_refractive_index(1.04f);
+    world.scene_objects.back()->set_transmissivity(1);
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
                                                o_rot*Vector{ 1, 0, 0}+Vector{0,1,0},
                                                o_rot*Vector{ 0, 0, 1}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
+    world.scene_objects.back()->set_refractive_index(1.04f);
+    world.scene_objects.back()->set_transmissivity(1);
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
                                                o_rot*Vector{ 0, 0,-1}+Vector{0,1,0},
                                                o_rot*Vector{ 1, 0, 0}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
+    world.scene_objects.back()->set_refractive_index(1.04f);
+    world.scene_objects.back()->set_transmissivity(1);
     world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
                                                o_rot*Vector{-1, 0, 0}+Vector{0,1,0},
                                                o_rot*Vector{ 0, 0,-1}+Vector{0,1,0}));
     world.scene_objects.back()->set_diffuse_factor(0);
+    world.scene_objects.back()->set_refractive_index(1.04f);
+    world.scene_objects.back()->set_transmissivity(1);
 
 
     world.raw_data = new unsigned char[WIDTH*HEIGHT*AA_samples*3];
