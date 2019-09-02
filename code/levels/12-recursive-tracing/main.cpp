@@ -290,7 +290,8 @@ class Object
       specular_factor(1),
       roughness(0),
       refractive_index(1.000293f),
-      transmissivity(0.f)
+      transmissivity(0.f),
+      is_light(false)
   { }
 
   virtual ~Object()
@@ -340,6 +341,11 @@ class Object
     transmissivity = v;
   }
 
+  void set_is_light(bool v)
+  {
+    is_light = v;
+  }
+
 
   void addNoiseToOutgoingRay(Vector& v, const Vector& normal) const
   {
@@ -361,6 +367,7 @@ class Object
   float roughness;
   float refractive_index;
   float transmissivity;
+  bool is_light;
 };
 
 
@@ -476,7 +483,8 @@ public:
     ray->object_normal = normal;
     ray->direction = reflection;
 
-    if (not total_internal_reflection) {
+    if (not total_internal_reflection and
+        transmissivity > 0) {
       Ray* refracted_ray = new Ray{hit_at + (hit_from_front
                                               ? -normal*0.001
                                               :  normal*0.001),
@@ -492,7 +500,7 @@ public:
                                             ? -normal*0.001
                                             :  normal*0.001),
                                  reflection};
-    reflected_ray->energy = reflectivity*fresnel_factor_reflection;
+    reflected_ray->energy = std::max(reflectivity, fresnel_factor_reflection);
     reflected_ray->parent = ray;
     reflected_ray->depth  = ray->depth + 1;
     reflected_ray->refractive_index = ray->refractive_index;
@@ -609,7 +617,8 @@ public:
     ray->object_normal = normal;
     ray->direction = reflection;
 
-    if (not total_internal_reflection) {
+    if (not total_internal_reflection and
+        transmissivity > 0) {
       Ray* refracted_ray = new Ray{hit_at + (hit_from_front
                                               ? -normal*0.001
                                               :  normal*0.001),
@@ -625,7 +634,7 @@ public:
                                             ? -normal*0.001
                                             :  normal*0.001),
                                  reflection};
-    reflected_ray->energy = reflectivity*fresnel_factor_reflection;
+    reflected_ray->energy = std::max(reflectivity, fresnel_factor_reflection);
     reflected_ray->parent = ray;
     reflected_ray->depth  = ray->depth + 1;
     reflected_ray->refractive_index = ray->refractive_index;
@@ -753,17 +762,20 @@ void TraceRayStep(const World& world,
   for (size_t light_sample = 0; light_sample < light_samples; ++light_sample) {
     Vector tmp_color{ray->color};
 
-    const Vector light_at{  0+random_offset()*30, 
-                          100,
-                            0+random_offset()*30};
+    const Vector light_at{  0.f+random_offset()*0.5f, 
+                           1.8f,
+                          -1.9f+random_offset()*0.4f};
     const Vector light_color{255,255,255};
 
     bool point_is_directly_lit{true};
+    min_hit_distance = std::numeric_limits<float>::max();
     Ray light_probe{ray->hit_at, !(light_at - ray->hit_at), 0};
     for (const auto& object : world.scene_objects) {
       if (object->is_hit_by_ray(&light_probe)) {
-        point_is_directly_lit = false;
-        break;
+        if (light_probe.hit_distance < min_hit_distance) {
+          min_hit_distance = light_probe.hit_distance;
+          point_is_directly_lit = object->is_light;
+        }
       }
     }
 
@@ -955,79 +967,217 @@ int main() {
 
     World world;
 
-    RotationMatrix s_rot{0,-frame/100.f*(22/7.f),0};
-    world.scene_objects.push_back(new Sphere{s_rot*Vector{1,2,0}, .5});
-    world.scene_objects.back()->set_color({0, 0, 0});
-    world.scene_objects.back()->set_reflectivity(0.95);
-    world.scene_objects.back()->set_diffuse_factor(0);
-    world.scene_objects.back()->set_roughness(0.75);
-    world.scene_objects.back()->set_refractive_index(1.3);
-    world.scene_objects.back()->set_transmissivity(1);
-    world.scene_objects.push_back(new Sphere{s_rot*Vector{-1.25,.8,0}, .25});
-    world.scene_objects.back()->set_color({255, 165, 0});
-    world.scene_objects.back()->set_reflectivity(0.95);
-    world.scene_objects.back()->set_diffuse_factor(0.9);
-    world.scene_objects.back()->set_specular_factor(1);
-    world.scene_objects.back()->set_hardness(99);
-    world.scene_objects.back()->set_refractive_index(1.008);
-    world.scene_objects.back()->set_transmissivity(1);
+    /// Cornell Box
+    Object* obj;
+    /// Left wall (red)
+    obj = new Triangle{{-1,  0, -5},
+                       {-1,  0,  0},
+                       {-1,  2, -5}};
+    obj->set_color({255, 0, 0});
+    obj->set_diffuse_factor(1);
+    obj->set_specular_factor(0);
+    obj->set_transmissivity(0);
+    obj->set_reflectivity(0);
+    world.scene_objects.emplace_back(std::move(obj));
+    obj = new Triangle{{-1,  2, -5},
+                       {-1,  0,  0},
+                       {-1,  2,  0}};
+    obj->set_color({255, 0, 0});
+    obj->set_diffuse_factor(1);
+    obj->set_specular_factor(0);
+    obj->set_transmissivity(0);
+    obj->set_reflectivity(0);
+    world.scene_objects.emplace_back(std::move(obj));
+    /// Right wall (blue)
+    obj = new Triangle{{ 1,  0, -5},
+                       { 1,  2, -5},
+                       { 1,  0,  0}};
+    obj->set_color({0, 0, 255});
+    obj->set_diffuse_factor(1);
+    obj->set_specular_factor(0);
+    obj->set_transmissivity(0);
+    obj->set_reflectivity(0);
+    world.scene_objects.emplace_back(std::move(obj));
+    obj = new Triangle{{ 1,  2, -5},
+                       { 1,  2,  0},
+                       { 1,  0,  0}};
+    obj->set_color({0, 0, 255});
+    obj->set_diffuse_factor(1);
+    obj->set_specular_factor(0);
+    obj->set_transmissivity(0);
+    obj->set_reflectivity(0);
+    world.scene_objects.emplace_back(std::move(obj));
+    /// Ceiling (Gray)
+    obj = new Triangle{{-1, 2, -5},
+                       {-1, 2,  0},
+                       { 1, 2,  0}};
+    obj->set_color({32, 32, 32});
+    obj->set_diffuse_factor(1);
+    obj->set_specular_factor(0);
+    obj->set_transmissivity(0);
+    obj->set_reflectivity(0);
+    world.scene_objects.emplace_back(std::move(obj));
+    obj = new Triangle{{-1, 2, -5},
+                       { 1, 2,  0},
+                       { 1, 2, -5}};
+    obj->set_color({32, 32, 32});
+    obj->set_diffuse_factor(1);
+    obj->set_specular_factor(0);
+    obj->set_transmissivity(0);
+    obj->set_reflectivity(0);
+    world.scene_objects.emplace_back(std::move(obj));
+    /// Back wall (Light gray)
+    obj = new Triangle{{-1, 2, 0},
+                       {-1, 0, 0},
+                       { 1, 0, 0}};
+    obj->set_color({64, 64, 64});
+    obj->set_diffuse_factor(1);
+    obj->set_specular_factor(0);
+    obj->set_transmissivity(0);
+    obj->set_reflectivity(0);
+    world.scene_objects.emplace_back(std::move(obj));
+    obj = new Triangle{{-1, 2, 0},
+                       { 1, 0, 0},
+                       { 1, 2, 0}};
+    obj->set_color({64, 64, 64});
+    obj->set_diffuse_factor(1);
+    obj->set_specular_factor(0);
+    obj->set_transmissivity(0);
+    obj->set_reflectivity(0);
+    world.scene_objects.emplace_back(std::move(obj));
+    /// Floor (Light gray)
+    obj = new Triangle{{-1, 0,  0},
+                       {-1, 0, -5},
+                       { 1, 0,  0}};
+    obj->set_color({64, 64, 64});
+    obj->set_diffuse_factor(1);
+    obj->set_specular_factor(0);
+    obj->set_transmissivity(0);
+    obj->set_reflectivity(0);
+    world.scene_objects.emplace_back(std::move(obj));
+    obj = new Triangle{{-1, 0, -5},
+                       { 1, 0, -5},
+                       { 1, 0,  0}};
+    obj->set_color({64, 64, 64});
+    obj->set_diffuse_factor(1);
+    obj->set_specular_factor(0);
+    obj->set_transmissivity(0);
+    obj->set_reflectivity(0);
+    world.scene_objects.emplace_back(std::move(obj));
+    /// Ceiling light
+    obj = new Triangle{{-0.5, 1.8,-1.5},
+                       {-0.5, 1.8,-2.3},
+                       { 0.5, 1.8,-2.3}};
+    obj->set_color(Vector{255, 255, 255});
+    obj->set_diffuse_factor(1);
+    obj->set_specular_factor(0);
+    obj->set_transmissivity(0);
+    obj->set_reflectivity(0);
+    obj->set_is_light(true);
+    world.scene_objects.emplace_back(std::move(obj));
+    obj = new Triangle{{-0.5, 1.8,-1.5},
+                       { 0.5, 1.8,-2.3},
+                       { 0.5, 1.8,-1.5}};
+    obj->set_color(Vector{255, 255, 255});
+    obj->set_diffuse_factor(1);
+    obj->set_specular_factor(0);
+    obj->set_transmissivity(0);
+    obj->set_reflectivity(0);
+    obj->set_is_light(true);
+    world.scene_objects.emplace_back(std::move(obj));
 
-    /// The octahedron has a separate rotation
-    RotationMatrix o_rot{0.5f*(frame+15)/100.f*(22/7.f),
-                         0.5f*(frame+15)/100.f*(22/7.f),
-                         0.5f*(frame+15)/100.f*(22/7.f)};
+    obj = new Sphere{{-0.3,0.4,-0.9}, .4};
+    obj->set_color({255, 165, 0});
+    obj->set_reflectivity(0.95);
+    obj->set_diffuse_factor(0);
+    obj->set_specular_factor(1);
+    obj->set_roughness(0.0);
+    obj->set_hardness(99);
+    obj->set_transmissivity(0);
+    world.scene_objects.emplace_back(std::move(obj));
+    obj = new Sphere{{0.35,0.25,-1.3}, .25};
+    obj->set_color({0, 0, 0});
+    obj->set_reflectivity(0.95);
+    obj->set_diffuse_factor(0);
+    obj->set_roughness(0.0);
+    obj->set_refractive_index(1.6);
+    obj->set_transmissivity(1);
+    world.scene_objects.emplace_back(std::move(obj));
+    /// Cornell Box
 
-    /// Octahedron (8 triangles)
-    /// Bottom half
-    world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
-                                               o_rot*Vector{-1, 0, 0}+Vector{0,1,0},
-                                               o_rot*Vector{ 0, 0, 1}+Vector{0,1,0}));
-    world.scene_objects.back()->set_diffuse_factor(0);
-    world.scene_objects.back()->set_refractive_index(1.04f);
-    world.scene_objects.back()->set_transmissivity(1);
-    world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
-                                               o_rot*Vector{ 0, 0,-1}+Vector{0,1,0},
-                                               o_rot*Vector{-1, 0, 0}+Vector{0,1,0}));
-    world.scene_objects.back()->set_diffuse_factor(0);
-    world.scene_objects.back()->set_refractive_index(1.04f);
-    world.scene_objects.back()->set_transmissivity(1);
-    world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
-                                               o_rot*Vector{ 1, 0, 0}+Vector{0,1,0},
-                                               o_rot*Vector{ 0, 0,-1}+Vector{0,1,0}));
-    world.scene_objects.back()->set_diffuse_factor(0);
-    world.scene_objects.back()->set_refractive_index(1.04f);
-    world.scene_objects.back()->set_transmissivity(1);
-    world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
-                                               o_rot*Vector{ 0, 0, 1}+Vector{0,1,0},
-                                               o_rot*Vector{ 1, 0, 0}+Vector{0,1,0}));
-    world.scene_objects.back()->set_diffuse_factor(0);
-    world.scene_objects.back()->set_refractive_index(1.04f);
-    world.scene_objects.back()->set_transmissivity(1);
-    /// Top half
-    world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
-                                               o_rot*Vector{ 0, 0, 1}+Vector{0,1,0},
-                                               o_rot*Vector{-1, 0, 0}+Vector{0,1,0}));
-    world.scene_objects.back()->set_diffuse_factor(0);
-    world.scene_objects.back()->set_refractive_index(1.04f);
-    world.scene_objects.back()->set_transmissivity(1);
-    world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
-                                               o_rot*Vector{ 1, 0, 0}+Vector{0,1,0},
-                                               o_rot*Vector{ 0, 0, 1}+Vector{0,1,0}));
-    world.scene_objects.back()->set_diffuse_factor(0);
-    world.scene_objects.back()->set_refractive_index(1.04f);
-    world.scene_objects.back()->set_transmissivity(1);
-    world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
-                                               o_rot*Vector{ 0, 0,-1}+Vector{0,1,0},
-                                               o_rot*Vector{ 1, 0, 0}+Vector{0,1,0}));
-    world.scene_objects.back()->set_diffuse_factor(0);
-    world.scene_objects.back()->set_refractive_index(1.04f);
-    world.scene_objects.back()->set_transmissivity(1);
-    world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
-                                               o_rot*Vector{-1, 0, 0}+Vector{0,1,0},
-                                               o_rot*Vector{ 0, 0,-1}+Vector{0,1,0}));
-    world.scene_objects.back()->set_diffuse_factor(0);
-    world.scene_objects.back()->set_refractive_index(1.04f);
-    world.scene_objects.back()->set_transmissivity(1);
+    //RotationMatrix s_rot{0,-frame/100.f*(22/7.f),0};
+    //world.scene_objects.push_back(new Sphere{s_rot*Vector{1,2,0}, .5});
+    //world.scene_objects.back()->set_color({0, 0, 0});
+    //world.scene_objects.back()->set_reflectivity(0.95);
+    //world.scene_objects.back()->set_diffuse_factor(0);
+    //world.scene_objects.back()->set_roughness(0.75);
+    //world.scene_objects.back()->set_refractive_index(1.3);
+    //world.scene_objects.back()->set_transmissivity(1);
+    //world.scene_objects.push_back(new Sphere{s_rot*Vector{-1.25,.8,0}, .25});
+    //world.scene_objects.back()->set_color({255, 165, 0});
+    //world.scene_objects.back()->set_reflectivity(0.95);
+    //world.scene_objects.back()->set_diffuse_factor(0.9);
+    //world.scene_objects.back()->set_specular_factor(1);
+    //world.scene_objects.back()->set_hardness(99);
+    //world.scene_objects.back()->set_refractive_index(1.008);
+    //world.scene_objects.back()->set_transmissivity(1);
+
+    ///// The octahedron has a separate rotation
+    //RotationMatrix o_rot{0.5f*(frame+15)/100.f*(22/7.f),
+    //                     0.5f*(frame+15)/100.f*(22/7.f),
+    //                     0.5f*(frame+15)/100.f*(22/7.f)};
+
+    ///// Octahedron (8 triangles)
+    ///// Bottom half
+    //world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
+    //                                           o_rot*Vector{-1, 0, 0}+Vector{0,1,0},
+    //                                           o_rot*Vector{ 0, 0, 1}+Vector{0,1,0}));
+    //world.scene_objects.back()->set_diffuse_factor(0);
+    //world.scene_objects.back()->set_refractive_index(1.04f);
+    //world.scene_objects.back()->set_transmissivity(1);
+    //world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
+    //                                           o_rot*Vector{ 0, 0,-1}+Vector{0,1,0},
+    //                                           o_rot*Vector{-1, 0, 0}+Vector{0,1,0}));
+    //world.scene_objects.back()->set_diffuse_factor(0);
+    //world.scene_objects.back()->set_refractive_index(1.04f);
+    //world.scene_objects.back()->set_transmissivity(1);
+    //world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
+    //                                           o_rot*Vector{ 1, 0, 0}+Vector{0,1,0},
+    //                                           o_rot*Vector{ 0, 0,-1}+Vector{0,1,0}));
+    //world.scene_objects.back()->set_diffuse_factor(0);
+    //world.scene_objects.back()->set_refractive_index(1.04f);
+    //world.scene_objects.back()->set_transmissivity(1);
+    //world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0,-1, 0}+Vector{0,1,0},
+    //                                           o_rot*Vector{ 0, 0, 1}+Vector{0,1,0},
+    //                                           o_rot*Vector{ 1, 0, 0}+Vector{0,1,0}));
+    //world.scene_objects.back()->set_diffuse_factor(0);
+    //world.scene_objects.back()->set_refractive_index(1.04f);
+    //world.scene_objects.back()->set_transmissivity(1);
+    ///// Top half
+    //world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
+    //                                           o_rot*Vector{ 0, 0, 1}+Vector{0,1,0},
+    //                                           o_rot*Vector{-1, 0, 0}+Vector{0,1,0}));
+    //world.scene_objects.back()->set_diffuse_factor(0);
+    //world.scene_objects.back()->set_refractive_index(1.04f);
+    //world.scene_objects.back()->set_transmissivity(1);
+    //world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
+    //                                           o_rot*Vector{ 1, 0, 0}+Vector{0,1,0},
+    //                                           o_rot*Vector{ 0, 0, 1}+Vector{0,1,0}));
+    //world.scene_objects.back()->set_diffuse_factor(0);
+    //world.scene_objects.back()->set_refractive_index(1.04f);
+    //world.scene_objects.back()->set_transmissivity(1);
+    //world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
+    //                                           o_rot*Vector{ 0, 0,-1}+Vector{0,1,0},
+    //                                           o_rot*Vector{ 1, 0, 0}+Vector{0,1,0}));
+    //world.scene_objects.back()->set_diffuse_factor(0);
+    //world.scene_objects.back()->set_refractive_index(1.04f);
+    //world.scene_objects.back()->set_transmissivity(1);
+    //world.scene_objects.push_back(new Triangle(o_rot*Vector{ 0, 1, 0}+Vector{0,1,0},
+    //                                           o_rot*Vector{-1, 0, 0}+Vector{0,1,0},
+    //                                           o_rot*Vector{ 0, 0,-1}+Vector{0,1,0}));
+    //world.scene_objects.back()->set_diffuse_factor(0);
+    //world.scene_objects.back()->set_refractive_index(1.04f);
+    //world.scene_objects.back()->set_transmissivity(1);
 
 
     world.raw_data = new unsigned char[WIDTH*HEIGHT*AA_samples*3];
