@@ -1,12 +1,11 @@
 
 Let's Build a Raytracer, From Scratch
 =====================================
+**Raytracing** is the new hotness in gaming — brillant reflections, complex refractions and high-fidelity shadows enhance the visual experience so much that no present-day AAA release can afford not to dazzle with alluring "RTX on" screenshots. What many people don't know: Raytracing is actually **much simpler** than "traditional" rendering!
 
 ![Final render animation](img/final-optimized.gif)
 
-This repository contains code, assets, and presentation slides from an introductory course on raytracing.
-
-Note: This repository will **NOT** accept pull requests.
+This repository contains code, assets, and presentation slides from an introductory course on raytracing. From **absolute scratch**, we build up a rendering engine that can handle a basic set of shapes and materials. Each part of the engine is easy to understand, and the final product offers a massive attack surface for straightforward extensions to continue working on.
 
 
 Presentation slides
